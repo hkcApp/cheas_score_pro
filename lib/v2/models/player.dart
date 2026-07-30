@@ -1,108 +1,56 @@
-import 'package:flutter/material.dart';
-
-/// ===============================================================
-/// Chea Scoreboard V2
-/// Player Model
-///
-/// Purpose:
-/// Represents one Mahjong player.
-///
-/// Stores:
-/// - Player name
-/// - Accent color
-/// - Running total
-/// - Current round total
-/// - Winner selection
-///
-/// This model is JSON serializable so it can be saved locally.
-/// ===============================================================
-
 class Player {
   Player({
     required this.id,
     required this.name,
-    required this.accentColor,
-    this.runningTotal = 0,
-    this.roundTotal = 0,
-    this.isWinner = false,
+    required this.score,
+    required this.seat,
+    this.isDealer = false,
   });
 
-  /// Player number (0-3)
   final int id;
 
-  /// Editable player name
   String name;
 
-  /// Player accent color
-  final Color accentColor;
+  int score;
 
-  /// Total accumulated score
-  int runningTotal;
+  /// 0 = East
+  /// 1 = South
+  /// 2 = West
+  /// 3 = North
+  int seat;
 
-  /// Current round score
-  int roundTotal;
+  bool isDealer;
 
-  /// Winner of this round
-  bool isWinner;
-
-  //==============================================================
-  // Utility
-  //==============================================================
-
-  void resetRound() {
-    roundTotal = 0;
-    isWinner = false;
+  String get wind {
+    switch (seat) {
+      case 0:
+        return "Ⓔ";
+      case 1:
+        return "Ⓢ";
+      case 2:
+        return "Ⓦ";
+      default:
+        return "Ⓝ";
+    }
   }
-
-  void commitRound() {
-    runningTotal += roundTotal;
-    resetRound();
-  }
-
-  void resetGame() {
-    runningTotal = 0;
-    resetRound();
-  }
-
-  //==============================================================
-  // JSON Serialization
-  //==============================================================
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
-      'accentColor': accentColor.value,
-      'runningTotal': runningTotal,
-      'roundTotal': roundTotal,
-      'isWinner': isWinner,
+      'score': score,
+      'seat': seat,
+      'isDealer': isDealer,
     };
   }
 
   factory Player.fromJson(Map<String, dynamic> json) {
     return Player(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      accentColor: Color(json['accentColor'] as int),
-      runningTotal: json['runningTotal'] as int,
-      roundTotal: json['roundTotal'] as int,
-      isWinner: json['isWinner'] as bool,
-    );
-  }
-
-  Player copyWith({
-    String? name,
-    int? runningTotal,
-    int? roundTotal,
-    bool? isWinner,
-  }) {
-    return Player(
-      id: id,
-      name: name ?? this.name,
-      accentColor: accentColor,
-      runningTotal: runningTotal ?? this.runningTotal,
-      roundTotal: roundTotal ?? this.roundTotal,
-      isWinner: isWinner ?? this.isWinner,
+      id: json['id'],
+      name: json['name'],
+      score: json['score'],
+      seat: json['seat'] ?? 0,
+      isDealer: json['isDealer'] ?? false,
     );
   }
 }
