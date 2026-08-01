@@ -8,6 +8,7 @@ class QuantityControl extends StatelessWidget {
     required this.onDecrement,
     this.maxValue = 99,
     this.enabled = true,
+    this.playerColor,
   });
 
   final int value;
@@ -20,80 +21,167 @@ class QuantityControl extends StatelessWidget {
 
   final bool enabled;
 
+  /// Optional player color theme.
+  final Color? playerColor;
+
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+
+    final tintColor =
+        playerColor ??
+        Colors.transparent;
+
+
+    return Container(
+
       width: 88,
+
       height: 42,
-      child: Row(
+
+      decoration:
+          BoxDecoration(
+
+        color:
+            enabled
+                ? tintColor.withValues(
+                    alpha: 0.12,
+                  )
+                : Colors.transparent,
+
+        borderRadius:
+            BorderRadius.circular(
+          8,
+        ),
+
+      ),
+
+
+      child:
+          Row(
+
         mainAxisAlignment:
             MainAxisAlignment.center,
+
         crossAxisAlignment:
             CrossAxisAlignment.center,
+
         children: [
+
 
           // Decrease button
           SizedBox(
+
             width: 30,
+
             height: 42,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              iconSize: 28,
-              icon: const Icon(
+
+            child:
+                IconButton(
+
+              padding:
+                  EdgeInsets.zero,
+
+              iconSize:
+                  28,
+
+              icon:
+                  const Icon(
                 Icons.keyboard_arrow_down,
               ),
-              color: enabled
-                  ? null
-                  : Colors.blue,
+
+              color:
+                  enabled
+                      ? playerColor
+                      : Colors.blue,
+
               onPressed:
                   enabled
                       ? onDecrement
                       : null,
+
             ),
+
           ),
+
 
 
           // Number display
           SizedBox(
+
             width: 28,
-            child: Text(
+
+            child:
+                Text(
+
               value.toString(),
+
               textAlign:
                   TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
+
+              style:
+                  TextStyle(
+
+                fontSize:
+                    16,
+
                 fontWeight:
                     FontWeight.bold,
-                color: enabled
-                    ? null
-                    : Colors.grey,
+
+                color:
+                    enabled
+                        ? playerColor
+                        : Colors.grey,
+
               ),
+
             ),
+
           ),
+
 
 
           // Increase button
           SizedBox(
+
             width: 30,
+
             height: 42,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              iconSize: 28,
-              icon: const Icon(
+
+            child:
+                IconButton(
+
+              padding:
+                  EdgeInsets.zero,
+
+              iconSize:
+                  28,
+
+              icon:
+                  const Icon(
                 Icons.keyboard_arrow_up,
               ),
-              color: enabled
-                  ? null
-                  : Colors.blue,
+
+              color:
+                  enabled
+                      ? playerColor
+                      : Colors.blue,
+
               onPressed:
                   enabled &&
                           value < maxValue
                       ? onIncrement
                       : null,
+
             ),
+
           ),
+
         ],
+
       ),
+
     );
+
   }
 }

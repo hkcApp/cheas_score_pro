@@ -250,8 +250,6 @@ class _ScoreScreenState
     BuildContext context,
   ) {
 
-
-
     final game =
         GameService.instance.currentGame;
 
@@ -260,25 +258,24 @@ class _ScoreScreenState
     }
 
 
-
-
     if (game == null) {
 
-
-
       return Scaffold(
-
 
         appBar:
             AppBar(
 
           title:
               const Text(
-            "Score Board",
+            "🀄 Chea's Mahjong Score Board",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
 
         ),
-
 
 
         body:
@@ -291,82 +288,55 @@ class _ScoreScreenState
 
         ),
 
-
       );
-
 
     }
 
 
 
-
-
-
-
-
     return Scaffold(
-
 
       appBar:
           AppBar(
 
-
         title:
             const Text(
-          "Score Board",
+          "🀄 Chea's Mahjong Score Board",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
 
-
       ),
-
-
 
 
 
       body:
           Column(
 
-
         children: [
-
-
-
 
 
           Padding(
 
-
             padding:
                 const EdgeInsets.symmetric(
-
               horizontal: 12,
-
               vertical: 6,
-
             ),
-
-
-
 
 
             child:
                 Column(
 
-
-
               children: [
-
-
-
-
 
 
                 Row(
 
-
-
                   children: [
-
 
 
                     const SizedBox(
@@ -374,146 +344,81 @@ class _ScoreScreenState
                     ),
 
 
-
                     const SizedBox(
                       width: 35,
                     ),
 
 
-
-
                     Expanded(
-
-
 
                       child:
                           Center(
 
-
-
                         child:
                             Text(
-
-
 
                           "Round ${game.round}",
 
-
-
                           style:
                               const TextStyle(
-
                             fontSize: 16,
-
                             fontWeight:
                                 FontWeight.bold,
-
                           ),
-
-
 
                         ),
 
-
-
                       ),
 
-
-
                     ),
-
-
-
 
 
                     const Expanded(
-
                       child:
                           SizedBox(),
-
                     ),
-
-
-
-
 
 
                     Expanded(
 
-
-
                       child:
                           Center(
-
-
 
                         child:
                             Text(
 
-
-
                           "Running Totals",
-
-
 
                           style:
                               const TextStyle(
-
                             fontSize: 16,
-
                             fontWeight:
                                 FontWeight.bold,
-
                           ),
-
-
 
                         ),
 
-
-
                       ),
 
-
-
                     ),
-
-
-
 
 
                     const Expanded(
-
                       child:
                           SizedBox(),
-
                     ),
-
 
 
                   ],
 
-
-
                 ),
-
-
-
-
 
 
               ],
 
-
-
             ),
 
-
-
           ),
-
-
-
 
 
 
@@ -523,104 +428,183 @@ class _ScoreScreenState
 
 
 
-
-
-
-
           Flexible(
-            child: SingleChildScrollView(
-              child: ScoringTable(
+
+            child:
+                SingleChildScrollView(
+
+              child:
+                  ScoringTable(
+
                 key: _tableKey,
+
                 playerNames:
                     game.players
-                        .map((player) => player.name)
+                        .map(
+                          (player) => player.name,
+                        )
                         .toList(),
+
 
                 runningTotals:
                     game.players
-                        .map((player) => player.score)
+                        .map(
+                          (player) => player.score,
+                        )
                         .toList(),
 
-                winnerIndex: winnerIndex,
 
-                onWinnerChanged: _winnerChanged,
+                winnerIndex:
+                    winnerIndex,
 
-                onPlayerNameChanged: (playerIndex, newName) {
+
+                onWinnerChanged:
+                    _winnerChanged,
+
+
+                onPlayerNameChanged:
+                    (playerIndex, newName) {
+
                   setState(() {
-                    game.players[playerIndex].name = newName;
+
+                    game.players[playerIndex].name =
+                        newName;
+
                   });
 
                   GameService.instance.saveCurrentGame();
+
                 },
 
-                onChanged: (values) {
-                  currentQuantities = values.map(
-                    (key, value) => MapEntry(
+
+                onChanged:
+                    (values) {
+
+                  currentQuantities =
+                      values.map(
+                    (key, value) =>
+                        MapEntry(
                       key,
                       List<int>.from(value),
                     ),
+
                   );
+
                 },
+
               ),
+
             ),
+
           ),
 
 
 
-
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+            mainAxisAlignment:
+                MainAxisAlignment.center,
+
             children: [
 
+
               SizedBox(
-                width: 150,
-                height: 42,
-                child: ElevatedButton(
-                  onPressed: _undoLastRound,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
+
+                width:
+                    150,
+
+                height:
+                    42,
+
+                child:
+                    ElevatedButton(
+
+                  onPressed:
+                      _undoLastRound,
+
+                  style:
+                      ElevatedButton.styleFrom(
+
+                    backgroundColor:
+                        Colors.orange,
+
                   ),
-                  child: const Text(
+
+                  child:
+                      const Text(
+
                     "UNDO",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+
+                    style:
+                        TextStyle(
+
+                      fontWeight:
+                          FontWeight.bold,
+
                     ),
+
                   ),
+
                 ),
+
               ),
 
-              const SizedBox(width: 16),
+
+
+              const SizedBox(
+                width: 16,
+              ),
+
+
 
               SizedBox(
-                width: 180,
-                height: 42,
-                child: ElevatedButton(
-                  onPressed: _saveRound,
-                  child: const Text(
-                    "SAVE ROUND",
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          )
 
+                width:
+                    180,
+
+                height:
+                    42,
+
+                child:
+                    ElevatedButton(
+
+                  onPressed:
+                      _saveRound,
+
+                  child:
+                      const Text(
+
+                    "SAVE ROUND",
+
+                    style:
+                        TextStyle(
+
+                      fontSize:
+                          17,
+
+                      fontWeight:
+                          FontWeight.bold,
+
+                    ),
+
+                  ),
+
+                ),
+
+              ),
+
+
+            ],
+
+          )
 
 
         ],
 
-
-
       ),
-
-
 
     );
 
   }
-
 
 }

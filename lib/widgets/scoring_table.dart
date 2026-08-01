@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/scoring_rule.dart';
 import '../services/game_service.dart';
+import '../theme/player_colors.dart';
 import 'quantity_control.dart';
 
 class ScoringTable extends StatefulWidget {
@@ -291,7 +292,7 @@ class ScoringTableState extends State<ScoringTable> {
 
         style:
             const TextStyle(
-          fontSize: 18,
+          fontSize: 16,
           fontWeight:
               FontWeight.bold,
         ),
@@ -483,40 +484,65 @@ class ScoringTableState extends State<ScoringTable> {
 
               if (isToggle) {
 
+                final playerTheme =
+                    PlayerColors.player(index);
 
                 return Expanded(
 
-                  child:
-                      Center(
+                  child: Center(
 
-                    child:
-                        Switch(
+                    child: Container(
 
-                      value:
-                          _quantities[
-                                  rule.name]![index] >
-                              0,
+                      padding:
+                          const EdgeInsets.all(4),
 
+                      decoration:
+                          BoxDecoration(
 
-                      onChanged:
-                          enabled
-                              ? (value) {
+                        color:
+                            enabled
+                                ? playerTheme.background
+                                    .withValues(
+                                      alpha: 0.35,
+                                    )
+                                : Colors.transparent,
 
-                                  _toggleBonus(
-                                    rule.name,
-                                    index,
-                                    value,
-                                  );
+                        borderRadius:
+                            BorderRadius.circular(6),
 
-                                }
-                              : null,
+                      ),
+
+                      child:
+                          Switch(
+
+                        value:
+                            _quantities[
+                                    rule.name]![index] >
+                                0,
+
+                        activeThumbColor:
+                            playerTheme.accent,
+
+                        onChanged:
+                            enabled
+                                ? (value) {
+
+                                    _toggleBonus(
+                                      rule.name,
+                                      index,
+                                      value,
+                                    );
+
+                                  }
+                                : null,
+
+                      ),
 
                     ),
 
                   ),
 
                 );
-
 
               }
 
@@ -567,18 +593,20 @@ class ScoringTableState extends State<ScoringTable> {
 
                   child:
                       QuantityControl(
+                        value:
+                            _quantities[
+                                rule.name]![index],
 
-                    value:
-                        _quantities[
-                            rule.name]![index],
+                        maxValue:
+                            rule.maxQuantity,
 
+                        enabled:
+                            enabled,
 
-                    maxValue:
-                        rule.maxQuantity,
-
-
-                    enabled:
-                        enabled,
+                        playerColor:
+                            PlayerColors
+                                .player(index)
+                                .accent,
 
 
                     onIncrement:
@@ -718,7 +746,7 @@ class ScoringTableState extends State<ScoringTable> {
 
 
             _buildSectionTitle(
-              "BONUS POINTS (WINNER ONLY)",
+              "BONUS POINTS",
             ),
 
 
