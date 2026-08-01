@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/game.dart';
@@ -24,14 +23,6 @@ class StorageService {
         jsonEncode(
           game.toJson(),
         );
-
-    debugPrint("====== SAVING GAME ======");
-
-    for (final p in game.players) {
-      debugPrint(
-        "${p.name}   Wind:${p.wind}   Score:${p.score}",
-      );
-    }
 
     await prefs.setString(
       _savedGameKey,
@@ -60,19 +51,9 @@ class StorageService {
       return null;
     }
 
-    final game = Game.fromJson(
+    return Game.fromJson(
       jsonDecode(data),
     );
-
-    debugPrint("====== LOADED GAME ======");
-
-    for (final p in game.players) {
-      debugPrint(
-        "${p.name}   Wind:${p.wind}   Score:${p.score}",
-      );
-    }
-
-    return game;
   }
 
   Future<void> deleteGame() async {
@@ -106,12 +87,6 @@ class StorageService {
       _lastPlayerNamesKey,
       names,
     );
-
-    debugPrint("====== SAVING LAST PLAYER NAMES ======");
-
-    for (final name in names) {
-      debugPrint(name);
-    }
   }
 
   /// Loads the last player names.
@@ -126,12 +101,6 @@ class StorageService {
         );
 
     if (names != null && names.length == 4) {
-      debugPrint("====== LOADED LAST PLAYER NAMES ======");
-
-      for (final name in names) {
-        debugPrint(name);
-      }
-
       return names;
     }
 

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../models/game.dart';
 import 'storage_service.dart';
 
@@ -24,8 +22,6 @@ class GameService {
   /// Starts a brand-new game while remembering the most recently
   /// used player names.
   Future<void> startNewGame() async {
-    debugPrint("========== START NEW GAME ==========");
-
     List<String> names;
 
     if (_currentGame != null) {
@@ -43,11 +39,6 @@ class GameService {
       }
     }
 
-    debugPrint("Names being used:");
-    for (final name in names) {
-      debugPrint(name);
-    }
-
     final game = Game();
 
     game.setPlayerNames(names);
@@ -62,52 +53,27 @@ class GameService {
     final game = _currentGame;
 
     if (game == null) {
-      debugPrint("saveCurrentGame(): No active game.");
       return;
     }
 
-    debugPrint("========== saveCurrentGame() ==========");
-    debugPrint("Players before saving:");
-
-    for (final p in game.players) {
-      debugPrint(
-        "${p.name}   Wind:${p.wind}   Score:${p.score}",
-      );
-    }
-
     await StorageService.instance.saveGame(game);
-
-    debugPrint("Game saved.");
   }
 
   Future<bool> loadSavedGame() async {
-    debugPrint("========== loadSavedGame() ==========");
-
     final game =
         await StorageService.instance.loadGame();
 
     if (game == null) {
-      debugPrint("No saved game found.");
       return false;
     }
 
     _currentGame = game;
-
-    debugPrint("Loaded players:");
-
-    for (final p in game.players) {
-      debugPrint(
-        "${p.name}   Wind:${p.wind}   Score:${p.score}",
-      );
-    }
 
     return true;
   }
 
   /// Deletes the saved game but keeps the remembered player names.
   Future<void> deleteSavedGame() async {
-    debugPrint("========== deleteSavedGame() ==========");
-
     await StorageService.instance.deleteGame();
 
     _currentGame = null;
