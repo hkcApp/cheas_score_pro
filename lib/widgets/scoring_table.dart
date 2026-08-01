@@ -340,9 +340,13 @@ class ScoringTableState extends State<ScoringTable> {
         ...List.generate(game.players.length, (index) {
           final player = game.players[index];
 
+          
+
           return Expanded(
             child: PlayerHeader(
               key: ValueKey("${player.id}-${player.wind}"),
+
+              playerIndex: index,
 
               playerName: player.name,
               runningTotal: player.score,
@@ -352,6 +356,7 @@ class ScoringTableState extends State<ScoringTable> {
               onWinnerTapped: () {
                 _selectWinner(index);
               },
+
 
               onNameChanged: (newName) {
                 setState(() {

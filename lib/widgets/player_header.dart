@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../theme/player_colors.dart';
+
 class PlayerHeader extends StatefulWidget {
+  final int playerIndex;
+
   final String playerName;
   final int runningTotal;
   final bool isWinner;
@@ -17,6 +21,7 @@ class PlayerHeader extends StatefulWidget {
 
   const PlayerHeader({
     super.key,
+    required this.playerIndex,
     required this.playerName,
     required this.runningTotal,
     required this.isWinner,
@@ -56,16 +61,6 @@ class _PlayerHeaderState extends State<PlayerHeader> {
   void didUpdateWidget(covariant PlayerHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Refresh immediately whenever the wind changes.
-    if (oldWidget.wind != widget.wind) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
-
-    // Keep the text field synchronized with the saved player name.
     if (!_focusNode.hasFocus &&
         widget.playerName != _controller.text) {
       _controller.text = widget.playerName;
@@ -90,87 +85,169 @@ class _PlayerHeaderState extends State<PlayerHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final theme =
+        PlayerColors.player(widget.playerIndex);
+
     return InkWell(
       onTap: widget.onWinnerTapped,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 2,
+      borderRadius: BorderRadius.circular(8),
+
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: 2,
         ),
+
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+        ),
+
+        decoration: BoxDecoration(
+          color: theme.background,
+
+          borderRadius:
+              BorderRadius.circular(8),
+
+          border: Border.all(
+            color: theme.border,
+          ),
+        ),
+
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize:
+              MainAxisSize.min,
+
           children: [
+
             SizedBox(
               height: 24,
+
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
+
+                textAlign:
+                    TextAlign.center,
+
+                style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight:
+                      FontWeight.bold,
+                  color:
+                      theme.foreground,
                 ),
-                decoration: const InputDecoration(
+
+                decoration:
+                    const InputDecoration(
                   isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
+                  border:
+                      InputBorder.none,
+                  contentPadding:
+                      EdgeInsets.zero,
                 ),
-                onSubmitted: (_) => _saveName(),
+
+                onSubmitted: (_) =>
+                    _saveName(),
               ),
             ),
 
-            const SizedBox(height: 2),
+
+            const SizedBox(
+              height: 2,
+            ),
+
 
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+
               children: [
+
                 GestureDetector(
-                  onTap: widget.onWinnerTapped,
+                  onTap:
+                      widget.onWinnerTapped,
+
                   child: Text(
-                    widget.isWinner ? "●" : "○",
+                    widget.isWinner
+                        ? "●"
+                        : "○",
+
                     style: TextStyle(
                       fontSize: 18,
-                      color: widget.isWinner
-                          ? Colors.green
-                          : Colors.grey,
+
+                      color:
+                          widget.isWinner
+                              ? Colors.green
+                              : theme.border,
                     ),
                   ),
                 ),
 
-                const SizedBox(width: 6),
+
+                const SizedBox(
+                  width: 5,
+                ),
+
 
                 GestureDetector(
-                  onTap: widget.canSelectEast
-                      ? widget.onEastTapped
-                      : null,
+                  onTap:
+                      widget.canSelectEast
+                          ? widget.onEastTapped
+                          : null,
+
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
                     ),
-                    decoration: widget.canSelectEast
-                        ? BoxDecoration(
-                            color: Colors.amber.shade100,
-                            borderRadius: BorderRadius.circular(4),
-                          )
-                        : null,
+
+                    decoration:
+                        widget.canSelectEast
+                            ? BoxDecoration(
+                                color:
+                                    theme.border
+                                        .withValues(
+                                          alpha: 0.35,
+                                        ),
+
+                                borderRadius:
+                                    BorderRadius
+                                        .circular(4),
+                              )
+                            : null,
+
                     child: Text(
                       widget.wind,
-                      style: const TextStyle(
+
+                      style:
+                          TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontWeight:
+                            FontWeight.bold,
+                        color:
+                            theme.foreground,
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(width: 8),
+
+                const SizedBox(
+                  width: 6,
+                ),
+
 
                 Text(
-                  widget.runningTotal.toString(),
-                  style: const TextStyle(
+                  widget.runningTotal
+                      .toString(),
+
+                  style:
+                      TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
+                    color:
+                        theme.foreground,
                   ),
                 ),
               ],
