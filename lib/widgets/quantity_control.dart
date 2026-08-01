@@ -44,7 +44,7 @@ class QuantityControl extends StatelessWidget {
               ),
               color: enabled
                   ? null
-                  : Colors.grey,
+                  : Colors.blue,
               onPressed:
                   enabled
                       ? onDecrement
@@ -84,7 +84,7 @@ class QuantityControl extends StatelessWidget {
               ),
               color: enabled
                   ? null
-                  : Colors.grey,
+                  : Colors.blue,
               onPressed:
                   enabled &&
                           value < maxValue

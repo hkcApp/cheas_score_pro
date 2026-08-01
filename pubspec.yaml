@@ -1,11 +1,11 @@
 name: chea_score_pro
-description: Chea's Mahjong Score Pro - A private Mahjong score keeping app.
+description: Chea's Mahjong Scoreboard
 publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.12.2
 
 dependencies:
   flutter:
@@ -22,3 +22,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Uncomment when you add assets.
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+
+  # Uncomment when you add custom fonts.
+  # fonts:
+  #   - family: YourFont
+  #     fonts:
+  #       - asset: assets/fonts/YourFont-Regular.ttf

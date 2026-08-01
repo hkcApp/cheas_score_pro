@@ -1,21 +1,27 @@
+import 'player_header.dart';
 import 'package:flutter/material.dart';
 
 import '../models/scoring_rule.dart';
+import '../services/game_service.dart';
 import 'quantity_control.dart';
 
 class ScoringTable extends StatefulWidget {
-  const ScoringTable({
+ const ScoringTable({
     super.key,
     required this.playerNames,
+    required this.runningTotals,
     required this.winnerIndex,
     required this.onWinnerChanged,
     required this.onChanged,
+    required this.onPlayerNameChanged,
   });
 
   final List<String> playerNames;
+  final List<int> runningTotals;
   final int winnerIndex;
   final ValueChanged<int> onWinnerChanged;
   final ValueChanged<Map<String, List<int>>> onChanged;
+  final void Function(int playerIndex, String newName) onPlayerNameChanged;
 
   @override
   State<ScoringTable> createState() =>
@@ -77,18 +83,22 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
 
-
   bool _isToggleBonus(
     String name,
   ) {
 
     return name ==
+            '6 Consecutive # (1 suit)' ||
+        name ==
+            '2X 6 Consecutive # (1 suit / 6 tiles)' ||
+        name ==
+            '4 Sets of Pong (12 chips)' ||
+        name ==
             'Self-draw Chip Mahjong' ||
         name ==
             'Discarded Chip Mahjong';
 
   }
-
 
 
 
@@ -101,6 +111,28 @@ class ScoringTableState extends State<ScoringTable> {
     final values =
         _quantities[ruleName]!;
 
+    // Maximum of 4 melds (Chow/Pong/Kong) per player.
+    const meldRules = [
+      'Chow',
+      'Pong',
+      'Pong (Wind/Dragon)',
+      'Kong',
+      'Kong (Wind/Dragon)',
+    ];
+
+    if (meldRules.contains(ruleName)) {
+
+      int meldTotal = 0;
+
+      for (final rule in meldRules) {
+        meldTotal += _quantities[rule]![playerIndex];
+      }
+
+      if (meldTotal >= 4) {
+        return;
+      }
+
+    }
 
     if (values[playerIndex] < maxValue) {
 
@@ -146,7 +178,6 @@ class ScoringTableState extends State<ScoringTable> {
 
 
 
-
   void _toggleBonus(
     String ruleName,
     int playerIndex,
@@ -155,38 +186,68 @@ class ScoringTableState extends State<ScoringTable> {
 
     setState(() {
 
-
       _quantities[ruleName]![playerIndex] =
           value ? 1 : 0;
 
-
-
       if (value) {
 
+        const consecutiveGroup = [
+          '6 Consecutive # (1 suit)',
+          '2X 6 Consecutive # (1 suit / 6 tiles)',
+          '4 Sets of Pong (12 chips)',
+        ];
 
-        final otherRule =
-            ruleName ==
-                    'Self-draw Chip Mahjong'
-                ? 'Discarded Chip Mahjong'
-                : 'Self-draw Chip Mahjong';
+        if (consecutiveGroup.contains(ruleName)) {
 
+          for (final rule in consecutiveGroup) {
 
+            if (rule != ruleName) {
+              _quantities[rule]![playerIndex] = 0;
+            }
 
-        _quantities[otherRule]![playerIndex] =
-            0;
+          }
+
+        }
+
+        const mahjongGroup = [
+          'Self-draw Chip Mahjong',
+          'Discarded Chip Mahjong',
+        ];
+
+        if (mahjongGroup.contains(ruleName)) {
+
+          for (final rule in mahjongGroup) {
+
+            if (rule != ruleName) {
+              _quantities[rule]![playerIndex] = 0;
+            }
+
+          }
+
+        }
 
       }
 
-
     });
 
+    widget.onChanged(_quantities);
 
+  }
+
+  void _toggleCheckboxBonus(
+    String ruleName,
+    int playerIndex,
+    bool? value,
+  ) {
+    setState(() {
+      _quantities[ruleName]![playerIndex] =
+          value == true ? 1 : 0;
+    });
 
     widget.onChanged(
       _quantities,
     );
   }
-
 
 
 
@@ -241,159 +302,84 @@ class ScoringTableState extends State<ScoringTable> {
 
 
 
-
-
   Widget _buildHeader() {
+    final game = GameService.instance.currentGame!;
 
     return Row(
-
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         const SizedBox(
-
           width: 170,
-
-          child:
-              Text(
-            "Combination",
-
-            style:
-                TextStyle(
-              fontWeight:
-                  FontWeight.bold,
-              fontSize: 15,
+          child: Padding(
+            padding: EdgeInsets.only(top: 18),
+            child: Text(
+              "Combination",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
           ),
-
         ),
-
-
 
         const SizedBox(
-
           width: 35,
-
-          child:
-              Text(
-            "Pts",
-
-            style:
-                TextStyle(
-              fontWeight:
-                  FontWeight.bold,
-              fontSize: 15,
+          child: Padding(
+            padding: EdgeInsets.only(top: 18),
+            child: Text(
+              "Pts",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
           ),
-
         ),
 
+        ...List.generate(game.players.length, (index) {
+          final player = game.players[index];
 
+          return Expanded(
+            child: PlayerHeader(
+              key: ValueKey("${player.id}-${player.wind}"),
 
-        ...widget.playerNames
-            .asMap()
-            .entries
-            .map(
+              playerName: player.name,
+              runningTotal: player.score,
+              wind: player.wind,
+              isWinner: widget.winnerIndex == index,
 
-          (entry) {
+              onWinnerTapped: () {
+                _selectWinner(index);
+              },
 
-            final index =
-                entry.key;
+              onNameChanged: (newName) {
+                setState(() {
+                  player.name = newName;
+                });
 
-            final name =
-                entry.value;
+                widget.onPlayerNameChanged(index, newName);
 
+                GameService.instance.saveCurrentGame();
+              },
 
-            final selected =
-                widget.winnerIndex ==
-                    index;
+              canSelectEast: game.round == 1,
 
+              onEastTapped: () async {
+                if (game.round != 1) return;
 
+                setState(() {
+                  game.setStartingEast(index);
+                });
 
-            return Expanded(
-
-              child:
-                  GestureDetector(
-
-                onTap:
-                    () {
-                  _selectWinner(
-                    index,
-                  );
-                },
-
-
-                child:
-                    Container(
-
-                  padding:
-                      const EdgeInsets.symmetric(
-                    vertical: 4,
-                  ),
-
-
-                  decoration:
-                      BoxDecoration(
-
-                    color:
-                        selected
-                            ? Colors.blue
-                            : Colors.transparent,
-
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      4,
-                    ),
-
-                  ),
-
-
-                  child:
-                      Center(
-
-                    child:
-                        Text(
-
-                      name,
-
-                      style:
-                          TextStyle(
-
-                        fontSize: 15,
-
-                        fontWeight:
-                            FontWeight.bold,
-
-                        color:
-                            selected
-                                ? Colors.white
-                                : Colors.black,
-
-                      ),
-
-                    ),
-
-                  ),
-
-                ),
-
-              ),
-
-            );
-
-          },
-
-        ),
-
+                await GameService.instance.saveCurrentGame();
+              },
+            ),
+          );
+        }),
       ],
-
     );
-
   }
-
-
-
-
 
 
   Widget _buildRow(
@@ -529,6 +515,43 @@ class ScoringTableState extends State<ScoringTable> {
 
               }
 
+
+  if (isBonus) {
+
+    return Expanded(
+      key: ValueKey('${rule.name}-$index-checkbox'),
+
+      child: Center(
+
+        child: Checkbox.adaptive(
+
+          key: ValueKey(
+            '${rule.name}-${widget.playerNames[index]}',
+          ),
+
+          value:
+              _quantities[rule.name]![index] == 1,
+
+          onChanged:
+              enabled
+                  ? (checked) {
+
+                      _toggleCheckboxBonus(
+                        rule.name,
+                        index,
+                        checked ?? false,
+                      );
+
+                    }
+                  : null,
+
+        ),
+
+      ),
+
+    );
+
+  }
 
 
 

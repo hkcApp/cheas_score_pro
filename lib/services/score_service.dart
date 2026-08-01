@@ -59,6 +59,9 @@ class ScoreService {
       ),
     );
 
+    // Rotate winds if East did not win.
+    game.updateWindsAfterRound(winnerId);
+
     // Prepare next round.
     game.round++;
 

@@ -30,7 +30,7 @@ class _ScoreScreenState
           GlobalKey<ScoringTableState>();
 
 
-  int winnerIndex = 0;
+  int winnerIndex = -1;
 
 
   Map<String, List<int>> currentQuantities = {};
@@ -134,176 +134,113 @@ class _ScoreScreenState
 
 
 
-
-
-
-
   Future<void> _saveRound() async {
 
-
-    final game =
-        GameService.instance.currentGame;
-
-
+    final game = GameService.instance.currentGame;
 
     if (game == null) {
-
       return;
-
     }
-
-
-
 
     final Map<int, int> scores = {};
 
+    for (int i = 0; i < game.players.length; i++) {
 
-
-
-
-    for (int i = 0;
-        i < game.players.length;
-        i++) {
-
-
-
-      final base =
-          _calculateBaseScore(i);
-
-
-
-
+      final base = _calculateBaseScore(i);
 
       if (i == winnerIndex) {
 
-
         int bonus = 0;
 
-
-
-        final winnerBonus =
-            _calculateWinnerBonus();
-
-
-
+        final winnerBonus = _calculateWinnerBonus();
 
         for (final value in winnerBonus.values) {
-
           bonus += value;
-
         }
 
-
-
-
-
-        scores[game.players[i].id] =
-            base + bonus;
-
-
+        scores[game.players[i].id] = base + bonus;
 
       } else {
 
-
-        scores[game.players[i].id] =
-            -base;
-
+        scores[game.players[i].id] = -base;
 
       }
-
-
     }
 
-
-
-
-
-
     final success =
-        const ScoreService()
-            .applyHandScore(
-
+        const ScoreService().applyHandScore(
 
       game: game,
 
+      winnerId: game.players[winnerIndex].id,
 
-      winnerId:
-          game.players[winnerIndex].id,
+      playerScores: scores,
 
+      baseQuantities: currentQuantities,
 
-
-      playerScores:
-          scores,
-
-
-
-      baseQuantities:
-          currentQuantities,
-
-
-
-      bonusQuantities:
-          _calculateWinnerBonus(),
-
+      bonusQuantities: _calculateWinnerBonus(),
 
     );
 
-
-
-
-
-
-
     if (success) {
 
+      await GameService.instance.saveCurrentGame();
 
-
-      await GameService.instance
-          .saveCurrentGame();
-
-
-
+      if (!mounted) return;
 
       setState(() {});
 
-
-
-      _tableKey
-          .currentState
-          ?.clearAll();
-
-
+      _tableKey.currentState?.clearAll();
 
       currentQuantities.clear();
 
-
-
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-
-          content:
-              Text(
-            "Round saved",
-          ),
-
+          content: Text("Round saved"),
         ),
-
-
       );
-
-
     }
-
-
   }
 
 
 
 
+
+  Future<void> _undoLastRound() async {
+
+    final game = GameService.instance.currentGame;
+
+    if (game == null) return;
+
+    final success = const ScoreService().undoLastHand(
+      game: game,
+    );
+
+    if (!success) {
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Nothing to undo."),
+        ),
+      );
+
+      return;
+    }
+
+    await GameService.instance.saveCurrentGame();
+
+    if (!mounted) return;
+
+    setState(() {});
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Last round undone."),
+      ),
+    );
+  }
 
 
 
@@ -317,6 +254,10 @@ class _ScoreScreenState
 
     final game =
         GameService.instance.currentGame;
+
+    if (winnerIndex == -1) {
+      winnerIndex = game?.eastIndex ?? 0;
+    }
 
 
 
@@ -561,103 +502,6 @@ class _ScoreScreenState
 
 
 
-                const SizedBox(
-                  height: 4,
-                ),
-
-
-
-
-
-
-
-                Row(
-
-
-
-                  children: [
-
-
-
-                    const SizedBox(
-                      width: 205,
-                    ),
-
-
-
-
-
-
-                    ...game.players.map(
-
-
-
-                      (player) {
-
-
-
-                        return Expanded(
-
-
-
-                          child:
-                              Center(
-
-
-
-                            child:
-                                Text(
-
-
-
-                              "${player.name}: ${player.score}",
-
-
-
-                              style:
-                                  const TextStyle(
-
-
-
-                                fontSize: 14,
-
-                                fontWeight:
-                                    FontWeight.w500,
-
-                              ),
-
-
-
-                            ),
-
-
-
-                          ),
-
-
-
-                        );
-
-
-
-                      },
-
-
-
-                    ),
-
-
-
-                  ],
-
-
-
-                ),
-
-
-
-
-
               ],
 
 
@@ -683,229 +527,86 @@ class _ScoreScreenState
 
 
 
-
-          Expanded(
-
-
-
-            child:
-                SingleChildScrollView(
-
-
-
-              child:
-                  ScoringTable(
-
-
-
-                key:
-                    _tableKey,
-
-
-
+          Flexible(
+            child: SingleChildScrollView(
+              child: ScoringTable(
+                key: _tableKey,
                 playerNames:
                     game.players
-                        .map(
-                          (player) =>
-                              player.name,
-                        )
+                        .map((player) => player.name)
                         .toList(),
 
+                runningTotals:
+                    game.players
+                        .map((player) => player.score)
+                        .toList(),
 
+                winnerIndex: winnerIndex,
 
-                winnerIndex:
-                    winnerIndex,
+                onWinnerChanged: _winnerChanged,
 
+                onPlayerNameChanged: (playerIndex, newName) {
+                  setState(() {
+                    game.players[playerIndex].name = newName;
+                  });
 
-
-                onWinnerChanged:
-                    _winnerChanged,
-
-
-
-                onChanged:
-                    (values) {
-
-
-
-                  currentQuantities =
-                      values.map(
-
-
-
-                    (key, value) =>
-
-
-
-                        MapEntry(
-
-                          key,
-
-                          List<int>.from(
-                            value,
-                          ),
-
-                        ),
-
-
-
-                  );
-
-
-
+                  GameService.instance.saveCurrentGame();
                 },
 
-
-
+                onChanged: (values) {
+                  currentQuantities = values.map(
+                    (key, value) => MapEntry(
+                      key,
+                      List<int>.from(value),
+                    ),
+                  );
+                },
               ),
-
-
-
             ),
-
-
-
           ),
 
 
 
 
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
 
-
-
-          Padding(
-
-
-
-            padding:
-                const EdgeInsets.only(
-
-              top: 2,
-
-              bottom: 8,
-
-            ),
-
-
-
-
-
-            child:
-                Center(
-
-
-
-              child:
-                  SizedBox(
-
-
-
-                width:
-                    180,
-
-
-
-                height:
-                    42,
-
-
-
-                child:
-                    ElevatedButton(
-
-
-
-                  style:
-                      ElevatedButton.styleFrom(
-
-
-
-                    elevation:
-                        6,
-
-
-
-                    shape:
-                        RoundedRectangleBorder(
-
-
-
-                      borderRadius:
-                          BorderRadius.circular(
-                        10,
-                      ),
-
-
-
-                    ),
-
-
-
-                    padding:
-                        EdgeInsets.zero,
-
-
-
+              SizedBox(
+                width: 150,
+                height: 42,
+                child: ElevatedButton(
+                  onPressed: _undoLastRound,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
                   ),
-
-
-
-
-
-                  onPressed:
-                      _saveRound,
-
-
-
-
-
-                  child:
-                      const Text(
-
-
-
-                    "SAVE ROUND",
-
-
-
-                    style:
-                        TextStyle(
-
-
-
-                      fontSize:
-                          17,
-
-
-
-                      fontWeight:
-                          FontWeight.bold,
-
-
-
+                  child: const Text(
+                    "UNDO",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
                     ),
-
-
-
                   ),
-
-
-
                 ),
-
-
-
               ),
 
+              const SizedBox(width: 16),
 
-
-            ),
-
-
-
-          ),
-
-
+              SizedBox(
+                width: 180,
+                height: 42,
+                child: ElevatedButton(
+                  onPressed: _saveRound,
+                  child: const Text(
+                    "SAVE ROUND",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
 
 
 
