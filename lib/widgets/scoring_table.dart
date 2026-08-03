@@ -728,7 +728,7 @@ class ScoringTableState extends State<ScoringTable> {
 
 
             _buildSectionTitle(
-              "BASE POINTS",
+              "BASE",
             ),
 
 
@@ -746,7 +746,7 @@ class ScoringTableState extends State<ScoringTable> {
 
 
             _buildSectionTitle(
-              "BONUS POINTS",
+              "BONUS",
             ),
 
 
