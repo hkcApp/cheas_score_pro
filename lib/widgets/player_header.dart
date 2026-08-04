@@ -93,14 +93,10 @@ class _PlayerHeaderState extends State<PlayerHeader> {
       borderRadius: BorderRadius.circular(8),
 
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: 2,
-        ),
-
         padding: const EdgeInsets.symmetric(
-          vertical: 4,
+          vertical: 5,
+          horizontal: 4,
         ),
-
         decoration: BoxDecoration(
           color: theme.background,
 
@@ -119,14 +115,18 @@ class _PlayerHeaderState extends State<PlayerHeader> {
           children: [
 
             SizedBox(
-              height: 24,
+              width: double.infinity,
+              height: 28,
 
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
 
+                maxLines: 1,
                 textAlign:
                     TextAlign.center,
+                textAlignVertical:
+                    TextAlignVertical.center,
 
                 style: TextStyle(
                   fontSize: 13,
@@ -149,7 +149,6 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                     _saveName(),
               ),
             ),
-
 
             const SizedBox(
               height: 2,
@@ -184,7 +183,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
 
 
                 const SizedBox(
-                  width: 5,
+                  width: 3,
                 ),
 
 
@@ -197,7 +196,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(
-                      horizontal: 5,
+                      horizontal: 4,
                       vertical: 1,
                     ),
 
@@ -233,24 +232,23 @@ class _PlayerHeaderState extends State<PlayerHeader> {
 
 
                 const SizedBox(
-                  width: 6,
+                  width: 4,
                 ),
 
-
-                Text(
-                  widget.runningTotal
-                      .toString(),
-
-                  style:
-                      TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        FontWeight.bold,
-                    color:
-                        theme.foreground,
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      widget.runningTotal.toString(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: theme.foreground,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
                   ),
-                ),
-              ],
+                ),              ],
             ),
           ],
         ),

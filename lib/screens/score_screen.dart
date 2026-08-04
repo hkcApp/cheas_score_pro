@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/scoring_rule.dart';
 import '../services/game_service.dart';
 import '../services/score_service.dart';
+import '../services/scoring_value_service.dart';
 import '../widgets/scoring_table.dart';
 
 
@@ -24,6 +25,15 @@ class ScoreScreen extends StatefulWidget {
 class _ScoreScreenState
     extends State<ScoreScreen> {
 
+  @override
+  void initState() {
+    super.initState();
+    ScoringValueService.instance.load().then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   final GlobalKey<ScoringTableState>
       _tableKey =
@@ -72,12 +82,16 @@ class _ScoreScreenState
       final quantities =
           currentQuantities[rule.name];
 
+      final points =
+          ScoringValueService.instance.getPoints(
+        rule.name,
+      );
 
       if (quantities != null) {
 
         total +=
             quantities[playerIndex] *
-            rule.points;
+            points;
 
       }
 
@@ -117,9 +131,13 @@ class _ScoreScreenState
 
         if (value > 0) {
 
+          final points =
+              ScoringValueService.instance.getPoints(
+            rule.name,
+          );
 
           result[rule.name] =
-              value * rule.points;
+              value * points;
 
         }
 
@@ -319,105 +337,8 @@ class _ScoreScreenState
         children: [
 
 
-          Padding(
-
-            padding:
-                const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 6,
-            ),
-
-
-            child:
-                Column(
-
-              children: [
-
-
-                Row(
-
-                  children: [
-
-
-                    const SizedBox(
-                      width: 170,
-                    ),
-
-
-                    const SizedBox(
-                      width: 35,
-                    ),
-
-
-                    Expanded(
-
-                      child:
-                          Center(
-
-                        child:
-                            Text(
-
-                          "Round ${game.round}",
-
-                          style:
-                              const TextStyle(
-                            fontSize: 16,
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
-
-                        ),
-
-                      ),
-
-                    ),
-
-
-                    const Expanded(
-                      child:
-                          SizedBox(),
-                    ),
-
-
-                    Expanded(
-
-                      child:
-                          Center(
-
-                        child:
-                            Text(
-
-                          "Running Totals",
-
-                          style:
-                              const TextStyle(
-                            fontSize: 16,
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
-
-                        ),
-
-                      ),
-
-                    ),
-
-
-                    const Expanded(
-                      child:
-                          SizedBox(),
-                    ),
-
-
-                  ],
-
-                ),
-
-
-              ],
-
-            ),
-
+          const SizedBox(
+            height: 4,
           ),
 
 
@@ -428,182 +349,78 @@ class _ScoreScreenState
 
 
 
-          Flexible(
-
-            child:
-                SingleChildScrollView(
-
-              child:
-                  ScoringTable(
-
-                key: _tableKey,
-
-                playerNames:
-                    game.players
-                        .map(
-                          (player) => player.name,
-                        )
-                        .toList(),
-
-
-                runningTotals:
-                    game.players
-                        .map(
-                          (player) => player.score,
-                        )
-                        .toList(),
-
-
-                winnerIndex:
-                    winnerIndex,
-
-
-                onWinnerChanged:
-                    _winnerChanged,
-
-
-                onPlayerNameChanged:
-                    (playerIndex, newName) {
-
-                  setState(() {
-
-                    game.players[playerIndex].name =
-                        newName;
-
-                  });
-
-                  GameService.instance.saveCurrentGame();
-
-                },
-
-
-                onChanged:
-                    (values) {
-
-                  currentQuantities =
-                      values.map(
-                    (key, value) =>
-                        MapEntry(
-                      key,
-                      List<int>.from(value),
-                    ),
-
-                  );
-
-                },
-
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ScoringTable(
+                  key: _tableKey,
+                  playerNames: game.players
+                      .map((player) => player.name)
+                      .toList(),
+                  runningTotals: game.players
+                      .map((player) => player.score)
+                      .toList(),
+                  winnerIndex: winnerIndex,
+                  onWinnerChanged: _winnerChanged,
+                  onPlayerNameChanged: (playerIndex, newName) {
+                    setState(() {
+                      game.players[playerIndex].name = newName;
+                    });
+                    GameService.instance.saveCurrentGame();
+                  },
+                  onChanged: (values) {
+                    currentQuantities = values.map(
+                      (key, value) => MapEntry(
+                        key,
+                        List<int>.from(value),
+                      ),
+                    );
+                  },
+                ),
               ),
-
             ),
-
-          ),
-
-
-
           Row(
-
             mainAxisAlignment:
                 MainAxisAlignment.center,
-
-            children: [
-
-
-              SizedBox(
-
-                width:
-                    150,
-
-                height:
-                    42,
-
-                child:
-                    ElevatedButton(
-
-                  onPressed:
-                      _undoLastRound,
-
-                  style:
-                      ElevatedButton.styleFrom(
-
-                    backgroundColor:
-                        Colors.orange,
-
-                  ),
-
-                  child:
-                      const Text(
-
-                    "UNDO",
-
-                    style:
-                        TextStyle(
-
-                      fontWeight:
-                          FontWeight.bold,
-
+              children: [
+                SizedBox(
+                  width: 150,
+                  height: 42,
+                  child: ElevatedButton(
+                    onPressed: _undoLastRound,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
                     ),
-
-                  ),
-
-                ),
-
-              ),
-
-
-
-              const SizedBox(
-                width: 16,
-              ),
-
-
-
-              SizedBox(
-
-                width:
-                    180,
-
-                height:
-                    42,
-
-                child:
-                    ElevatedButton(
-
-                  onPressed:
-                      _saveRound,
-
-                  child:
-                      const Text(
-
-                    "SAVE ROUND",
-
-                    style:
-                        TextStyle(
-
-                      fontSize:
-                          17,
-
-                      fontWeight:
-                          FontWeight.bold,
-
+                    child: const Text(
+                      "UNDO",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-
                   ),
-
                 ),
-
-              ),
-
-
-            ],
-
-          )
-
-
-        ],
-
-      ),
-
-    );
+                const SizedBox(
+                  width: 16,
+                ),
+                SizedBox(
+                  width: 180,
+                  height: 42,
+                  child: ElevatedButton(
+                    onPressed: _saveRound,
+                    child: const Text(
+                      "SAVE ROUND",
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
 
   }
 

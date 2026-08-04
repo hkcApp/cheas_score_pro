@@ -4,8 +4,7 @@ class QuantityControl extends StatelessWidget {
   const QuantityControl({
     super.key,
     required this.value,
-    required this.onIncrement,
-    required this.onDecrement,
+    required this.onChanged,
     this.maxValue = 99,
     this.enabled = true,
     this.playerColor,
@@ -13,9 +12,7 @@ class QuantityControl extends StatelessWidget {
 
   final int value;
 
-  final VoidCallback onIncrement;
-
-  final VoidCallback onDecrement;
+  final ValueChanged<int> onChanged;
 
   final int maxValue;
 
@@ -24,164 +21,55 @@ class QuantityControl extends StatelessWidget {
   /// Optional player color theme.
   final Color? playerColor;
 
-
   @override
   Widget build(BuildContext context) {
-
-    final tintColor =
-        playerColor ??
-        Colors.transparent;
-
+    final tintColor = playerColor ?? Colors.transparent;
 
     return Container(
-
-      width: 88,
-
-      height: 42,
-
-      decoration:
-          BoxDecoration(
-
-        color:
-            enabled
-                ? tintColor.withValues(
-                    alpha: 0.12,
-                  )
-                : Colors.transparent,
-
-        borderRadius:
-            BorderRadius.circular(
-          8,
+      width: 80,
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: enabled
+            ? tintColor.withValues(alpha: 0.12)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: enabled
+              ? tintColor.withValues(alpha: 0.3)
+              : Colors.grey.shade300,
         ),
-
       ),
-
-
-      child:
-          Row(
-
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-
-        crossAxisAlignment:
-            CrossAxisAlignment.center,
-
-        children: [
-
-
-          // Decrease button
-          SizedBox(
-
-            width: 30,
-
-            height: 42,
-
-            child:
-                IconButton(
-
-              padding:
-                  EdgeInsets.zero,
-
-              iconSize:
-                  28,
-
-              icon:
-                  const Icon(
-                Icons.keyboard_arrow_down,
-              ),
-
-              color:
-                  enabled
-                      ? playerColor
-                      : Colors.blue,
-
-              onPressed:
-                  enabled
-                      ? onDecrement
-                      : null,
-
-            ),
-
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: value,
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            size: 20,
+            color: enabled ? playerColor ?? Colors.black : Colors.grey,
           ),
-
-
-
-          // Number display
-          SizedBox(
-
-            width: 28,
-
-            child:
-                Text(
-
-              value.toString(),
-
-              textAlign:
-                  TextAlign.center,
-
-              style:
-                  TextStyle(
-
-                fontSize:
-                    16,
-
-                fontWeight:
-                    FontWeight.bold,
-
-                color:
-                    enabled
-                        ? playerColor
-                        : Colors.grey,
-
-              ),
-
-            ),
-
+          dropdownColor: Colors.white,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: enabled ? playerColor ?? Colors.black : Colors.grey,
           ),
-
-
-
-          // Increase button
-          SizedBox(
-
-            width: 30,
-
-            height: 42,
-
-            child:
-                IconButton(
-
-              padding:
-                  EdgeInsets.zero,
-
-              iconSize:
-                  28,
-
-              icon:
-                  const Icon(
-                Icons.keyboard_arrow_up,
-              ),
-
-              color:
-                  enabled
-                      ? playerColor
-                      : Colors.blue,
-
-              onPressed:
-                  enabled &&
-                          value < maxValue
-                      ? onIncrement
-                      : null,
-
+          items: List<DropdownMenuItem<int>>.generate(
+            maxValue + 1,
+            (index) => DropdownMenuItem<int>(
+              value: index,
+              child: Text(index.toString()),
             ),
-
           ),
-
-        ],
-
+          onChanged: enabled
+              ? (selected) {
+                  if (selected != null) {
+                    onChanged(selected);
+                  }
+                }
+              : null,
+        ),
       ),
-
     );
-
   }
 }
