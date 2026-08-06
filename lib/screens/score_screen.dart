@@ -65,6 +65,17 @@ class _ScoreScreenState
 
   }
 
+  Future<void> _resetDefaultPoints() async {
+    await _tableKey.currentState?.resetPointValues();
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Point values reset to defaults."),
+      ),
+    );
+  }
+
 
 
 
@@ -384,7 +395,7 @@ class _ScoreScreenState
                 MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: 150,
+                  width: 72,
                   height: 42,
                   child: ElevatedButton(
                     onPressed: _undoLastRound,
@@ -400,10 +411,26 @@ class _ScoreScreenState
                   ),
                 ),
                 const SizedBox(
-                  width: 16,
+                  width: 12,
                 ),
                 SizedBox(
                   width: 180,
+                  height: 42,
+                  child: OutlinedButton(
+                    onPressed: _resetDefaultPoints,
+                    child: const Text(
+                      "Reset Default",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
+                SizedBox(
+                  width: 144,
                   height: 42,
                   child: ElevatedButton(
                     onPressed: _saveRound,

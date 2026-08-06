@@ -1,9 +1,11 @@
-import 'player_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/scoring_rule.dart';
 import '../services/game_service.dart';
+import '../services/scoring_value_service.dart';
 import '../theme/player_colors.dart';
+import 'player_header.dart';
 import 'quantity_control.dart';
 
 class ScoringTable extends StatefulWidget {
@@ -32,11 +34,12 @@ class ScoringTable extends StatefulWidget {
 
 class ScoringTableState extends State<ScoringTable> {
 
-  static const double _ruleNameWidth = 140;
+  static const double _ruleNameWidth = 128;
   static const double _pointsWidth = 34;
-  static const double _playerColumnWidth = 100;
+  static const double _playerColumnWidth = 82;
 
   final Map<String, List<int>> _quantities = {};
+  final Map<String, TextEditingController> _pointControllers = {};
   late final ScrollController _headerHorizontalController;
   late final ScrollController _bodyHorizontalController;
   late final ScrollController _leftVerticalController;
@@ -45,7 +48,7 @@ class ScoringTableState extends State<ScoringTable> {
   bool _isSyncingHorizontal = false;
   bool _isSyncingVertical = false;
 
-  static const double _sectionTitleHeight = 34;
+  static const double _sectionTitleHeight = 24;
 
   @override
   void initState() {
@@ -61,6 +64,7 @@ class ScoringTableState extends State<ScoringTable> {
     _rightVerticalController.addListener(_syncRightVerticalScroll);
 
     _initialize();
+    _initializePointControllers();
   }
 
   void _syncHeaderScroll() {
@@ -109,6 +113,9 @@ class ScoringTableState extends State<ScoringTable> {
     _bodyHorizontalController.dispose();
     _leftVerticalController.dispose();
     _rightVerticalController.dispose();
+    for (final controller in _pointControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -129,7 +136,52 @@ class ScoringTableState extends State<ScoringTable> {
     }
   }
 
+  void _initializePointControllers() {
+    for (final rule in [
+      ...ScoringRules.baseRules,
+      ...ScoringRules.bonusRules,
+    ]) {
+      _pointControllers[rule.name] = TextEditingController(
+        text: ScoringValueService.instance.getPoints(rule.name).toString(),
+      );
+    }
+  }
 
+  Future<void> _savePointsValue(
+    String ruleName,
+  ) async {
+    final controller = _pointControllers[ruleName]!;
+    final text = controller.text.trim();
+    final value = int.tryParse(text);
+
+    if (value == null) {
+      controller.text = ScoringValueService.instance.getPoints(ruleName).toString();
+      return;
+    }
+
+    await ScoringValueService.instance.setPoints(
+      ruleName,
+      value,
+    );
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> resetPointValues() async {
+    await ScoringValueService.instance.resetToDefaults();
+    for (final rule in [
+      ...ScoringRules.baseRules,
+      ...ScoringRules.bonusRules,
+    ]) {
+      _pointControllers[rule.name]!.text =
+          ScoringValueService.instance.getPoints(rule.name).toString();
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   void clearAll() {
 
@@ -304,6 +356,12 @@ class ScoringTableState extends State<ScoringTable> {
         return 'Honor Pong';
       case 'Kong (Wind/Dragon)':
         return 'Honor Kong';
+      case '4 Sets of Pong (12 chips)':
+        return '4 Sets of Pong';
+      case '6 Consecutive # (1 suit)':
+        return '6 consec. # (1 suit)';
+      case '2X 6 Consecutive # (1 suit / 6 tiles)':
+        return '2X 6 consec. # (1 suit/6 tiles)';
       default:
         return ruleName;
     }
@@ -351,8 +409,9 @@ class ScoringTableState extends State<ScoringTable> {
   Widget _buildLeftRow(
     ScoringRule rule,
   ) {
+    final isBonus = rule.type == ScoringType.bonus;
     return SizedBox(
-      height: 48,
+      height: 34,
       child: Row(
         children: [
           SizedBox(
@@ -361,8 +420,11 @@ class ScoringTableState extends State<ScoringTable> {
               alignment: Alignment.centerLeft,
               child: Text(
                 _displayRuleName(rule.name),
-                style: const TextStyle(
-                  fontSize: 15,
+                overflow: TextOverflow.visible,
+                softWrap: true,
+                maxLines: 2,
+                style: TextStyle(
+                  fontSize: isBonus ? 13 : 15,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -371,12 +433,23 @@ class ScoringTableState extends State<ScoringTable> {
           SizedBox(
             width: _pointsWidth,
             child: Center(
-              child: Text(
-                rule.points.toString(),
+              child: TextField(
+                controller: _pointControllers[rule.name],
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
                 ),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                onSubmitted: (_) => _savePointsValue(rule.name),
+                onEditingComplete: () => _savePointsValue(rule.name),
               ),
             ),
           ),
@@ -392,7 +465,7 @@ class ScoringTableState extends State<ScoringTable> {
     final isToggle = _isToggleBonus(rule.name);
 
     return SizedBox(
-      height: 48,
+      height: 34,
       child: Row(
         children: List.generate(
           widget.playerNames.length,
@@ -485,7 +558,6 @@ class ScoringTableState extends State<ScoringTable> {
     return [
       _buildSectionTitle('BASE'),
       ...ScoringRules.baseRules.map(_buildLeftRow),
-      const SizedBox(height: 4),
       _buildSectionTitle('BONUS'),
       ...ScoringRules.bonusRules.map(_buildLeftRow),
     ];
@@ -495,7 +567,6 @@ class ScoringTableState extends State<ScoringTable> {
     return [
       const SizedBox(height: _sectionTitleHeight),
       ...ScoringRules.baseRules.map(_buildRightRow),
-      const SizedBox(height: 4),
       const SizedBox(height: _sectionTitleHeight),
       ...ScoringRules.bonusRules.map(_buildRightRow),
     ];
