@@ -15,11 +15,15 @@ class ScoringValueService {
   bool _loaded = false;
 
   static final Map<String, int> _defaultPoints = {
-    for (final rule in [
-      ...ScoringRules.baseRules,
-      ...ScoringRules.bonusRules,
-    ])
-      rule.name: rule.points,
+    for (final rule in ScoringRules.baseRules) rule.name: rule.points,
+  };
+
+  /// Defaults used before the base-rule values were revised. Values that still
+  /// match these are migrated to the new defaults; custom values are retained.
+  static const Map<String, int> _previousDefaultPoints = {
+    'Chow': 2,
+    'Pong': 4,
+    'Pong (Wind/Dragon)': 5,
   };
 
   Future<void> load() async {
@@ -41,7 +45,9 @@ class ScoringValueService {
         for (final entry in data.entries) {
           final value = entry.value;
           if (value is int && _defaultPoints.containsKey(entry.key)) {
-            _values[entry.key] = value;
+            if (_previousDefaultPoints[entry.key] != value) {
+              _values[entry.key] = value;
+            }
           }
         }
       } catch (_) {
@@ -58,10 +64,7 @@ class ScoringValueService {
     return _values[ruleName] ?? _defaultPoints[ruleName]!;
   }
 
-  Future<void> setPoints(
-    String ruleName,
-    int points,
-  ) async {
+  Future<void> setPoints(String ruleName, int points) async {
     _values[ruleName] = points;
     await _save();
   }
@@ -75,9 +78,6 @@ class ScoringValueService {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _scoringValuesKey,
-      jsonEncode(_values),
-    );
+    await prefs.setString(_scoringValuesKey, jsonEncode(_values));
   }
 }

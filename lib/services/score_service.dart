@@ -30,9 +30,7 @@ class ScoreService {
     required Map<String, List<int>> baseQuantities,
     required Map<String, int> bonusQuantities,
   }) {
-    if (!game.players.any(
-      (player) => player.id == winnerId,
-    )) {
+    if (!game.players.any((player) => player.id == winnerId)) {
       return false;
     }
 
@@ -68,13 +66,10 @@ class ScoreService {
     return true;
   }
 
-
   /// Undo the most recent hand.
   ///
   /// Restores player totals and removes history entry.
-  bool undoLastHand({
-    required Game game,
-  }) {
+  bool undoLastHand({required Game game}) {
     final transaction = game.removeLastTransaction();
 
     if (transaction == null) {
@@ -82,8 +77,7 @@ class ScoreService {
     }
 
     for (final player in game.players) {
-      final change =
-          transaction.playerDeltas[player.id] ?? 0;
+      final change = transaction.playerDeltas[player.id] ?? 0;
 
       if (change > 0) {
         player.subtractScore(change);

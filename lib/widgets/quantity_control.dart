@@ -30,9 +30,7 @@ class QuantityControl extends StatelessWidget {
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: enabled
-            ? tintColor.withValues(alpha: 0.12)
-            : Colors.transparent,
+        color: enabled ? tintColor.withValues(alpha: 0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: enabled
@@ -40,34 +38,32 @@ class QuantityControl extends StatelessWidget {
               : Colors.grey.shade300,
         ),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<int>(
-          value: value,
-          icon: Icon(
-            Icons.keyboard_arrow_down,
-            size: 20,
-            color: enabled ? playerColor ?? Colors.black : Colors.grey,
-          ),
-          dropdownColor: Colors.white,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: enabled ? playerColor ?? Colors.black : Colors.grey,
-          ),
-          items: List<DropdownMenuItem<int>>.generate(
-            maxValue + 1,
-            (index) => DropdownMenuItem<int>(
-              value: index,
-              child: Text(index.toString()),
+      child: PopupMenuButton<int>(
+        padding: EdgeInsets.zero,
+        tooltip: 'Select quantity',
+        onSelected: enabled ? onChanged : null,
+        itemBuilder: (context) => List<PopupMenuEntry<int>>.generate(
+          maxValue + 1,
+          (index) =>
+              PopupMenuItem<int>(value: index, child: Text(index.toString())),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              value.toString(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: enabled ? playerColor ?? Colors.black : Colors.grey,
+              ),
             ),
-          ),
-          onChanged: enabled
-              ? (selected) {
-                  if (selected != null) {
-                    onChanged(selected);
-                  }
-                }
-              : null,
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 20,
+              color: enabled ? playerColor ?? Colors.black : Colors.grey,
+            ),
+          ],
         ),
       ),
     );

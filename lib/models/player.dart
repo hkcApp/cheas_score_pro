@@ -14,15 +14,11 @@ class Player {
 
   String wind;
 
-  void addScore(
-    int points,
-  ) {
+  void addScore(int points) {
     score += points;
   }
 
-  void subtractScore(
-    int points,
-  ) {
+  void subtractScore(int points) {
     score -= points;
   }
 
@@ -35,17 +31,10 @@ class Player {
   // ==========================
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'score': score,
-      'wind': wind,
-    };
+    return {'id': id, 'name': name, 'score': score, 'wind': wind};
   }
 
-  factory Player.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory Player.fromJson(Map<String, dynamic> json) {
     return Player(
       id: json['id'] as int,
       name: json['name'] as String,

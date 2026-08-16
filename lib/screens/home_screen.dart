@@ -6,19 +6,15 @@ import '../services/game_service.dart';
 import '../widgets/menu_button.dart';
 
 import 'history_screen.dart';
+import 'help_screen.dart';
 import 'score_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({
-    super.key,
-  });
+  const HomeScreen({super.key});
 
-  Future<void> _resumeGame(
-    BuildContext context,
-  ) async {
-    final loaded =
-        await GameService.instance.loadSavedGame();
+  Future<void> _resumeGame(BuildContext context) async {
+    final loaded = await GameService.instance.loadSavedGame();
 
     if (!context.mounted) return;
 
@@ -31,55 +27,37 @@ class HomeScreen extends StatelessWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ScoreScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const ScoreScreen()),
     );
   }
 
-  Future<void> _newGame(
-    BuildContext context,
-  ) async {
+  Future<void> _newGame(BuildContext context) async {
     await GameService.instance.startNewGame();
 
     if (!context.mounted) return;
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ScoreScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const ScoreScreen()),
     );
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          AppStrings.appTitle,
-        ),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text(AppStrings.appTitle), centerTitle: true),
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(
-              24,
-            ),
+            padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.casino,
                   size: 96,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
 
                 const SizedBox(height: 24),
@@ -98,10 +76,7 @@ class HomeScreen extends StatelessWidget {
                 const Text(
                   AppStrings.welcome,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
                 ),
 
                 const SizedBox(height: 40),
@@ -110,6 +85,19 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.play_arrow,
                   title: AppStrings.newGame,
                   onPressed: () => _newGame(context),
+                ),
+
+                const SizedBox(height: 16),
+
+                MenuButton(
+                  icon: Icons.help_outline,
+                  title: 'Help',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpScreen()),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 16),
@@ -128,10 +116,7 @@ class HomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const HistoryScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const HistoryScreen()),
                     );
                   },
                 ),
@@ -144,10 +129,7 @@ class HomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const SettingsScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
                     );
                   },
                 ),

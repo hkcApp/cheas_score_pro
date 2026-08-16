@@ -44,9 +44,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
   void initState() {
     super.initState();
 
-    _controller = TextEditingController(
-      text: widget.playerName,
-    );
+    _controller = TextEditingController(text: widget.playerName);
 
     _focusNode = FocusNode();
 
@@ -61,8 +59,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
   void didUpdateWidget(covariant PlayerHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (!_focusNode.hasFocus &&
-        widget.playerName != _controller.text) {
+    if (!_focusNode.hasFocus && widget.playerName != _controller.text) {
       _controller.text = widget.playerName;
     }
   }
@@ -70,8 +67,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
   void _saveName() {
     final name = _controller.text.trim();
 
-    if (name.isNotEmpty &&
-        name != widget.playerName) {
+    if (name.isNotEmpty && name != widget.playerName) {
       widget.onNameChanged(name);
     }
   }
@@ -85,35 +81,26 @@ class _PlayerHeaderState extends State<PlayerHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        PlayerColors.player(widget.playerIndex);
+    final theme = PlayerColors.player(widget.playerIndex);
 
     return InkWell(
       onTap: widget.onWinnerTapped,
       borderRadius: BorderRadius.circular(8),
 
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 5,
-          horizontal: 4,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
         decoration: BoxDecoration(
           color: theme.background,
 
-          borderRadius:
-              BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8),
 
-          border: Border.all(
-            color: theme.border,
-          ),
+          border: Border.all(color: theme.border),
         ),
 
         child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
 
           children: [
-
             SizedBox(
               width: double.infinity,
               height: 28,
@@ -123,117 +110,82 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                 focusNode: _focusNode,
 
                 maxLines: 1,
-                textAlign:
-                    TextAlign.center,
-                textAlignVertical:
-                    TextAlignVertical.center,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
 
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight:
-                      FontWeight.bold,
-                  color:
-                      theme.foreground,
+                  fontWeight: FontWeight.bold,
+                  color: theme.foreground,
                 ),
 
-                decoration:
-                    const InputDecoration(
+                decoration: const InputDecoration(
                   isDense: true,
-                  border:
-                      InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.zero,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
                 ),
 
-                onSubmitted: (_) =>
-                    _saveName(),
+                onSubmitted: (_) => _saveName(),
               ),
             ),
 
-            const SizedBox(
-              height: 2,
-            ),
-
+            const SizedBox(height: 2),
 
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-
                 GestureDetector(
-                  onTap:
-                      widget.onWinnerTapped,
-
-                  child: Text(
-                    widget.isWinner
-                        ? "●"
-                        : "○",
-
-                    style: TextStyle(
-                      fontSize: 18,
-
-                      color:
-                          widget.isWinner
-                              ? Colors.green
-                              : theme.border,
-                    ),
-                  ),
-                ),
-
-
-                const SizedBox(
-                  width: 3,
-                ),
-
-
-                GestureDetector(
-                  onTap:
-                      widget.canSelectEast
-                          ? widget.onEastTapped
-                          : null,
-
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-
-                    decoration:
-                        widget.canSelectEast
-                            ? BoxDecoration(
-                                color:
-                                    theme.border
-                                        .withValues(
-                                          alpha: 0.35,
-                                        ),
-
-                                borderRadius:
-                                    BorderRadius
-                                        .circular(4),
-                              )
-                            : null,
-
-                    child: Text(
-                      widget.wind,
-
-                      style:
-                          TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            FontWeight.bold,
-                        color:
-                            theme.foreground,
+                  key: ValueKey('winner-selector-${widget.playerIndex}'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: widget.onWinnerTapped,
+                  child: SizedBox(
+                    width: 18,
+                    height: 24,
+                    child: Center(
+                      child: Text(
+                        widget.isWinner ? "●" : "○",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: widget.isWinner ? Colors.green : theme.border,
+                        ),
                       ),
                     ),
                   ),
                 ),
 
+                const SizedBox(width: 3),
 
-                const SizedBox(
-                  width: 4,
+                GestureDetector(
+                  onTap: widget.canSelectEast ? widget.onEastTapped : null,
+
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+
+                    decoration: widget.canSelectEast
+                        ? BoxDecoration(
+                            color: theme.border.withValues(alpha: 0.35),
+
+                            borderRadius: BorderRadius.circular(4),
+                          )
+                        : null,
+
+                    child: Text(
+                      widget.wind,
+
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: theme.foreground,
+                      ),
+                    ),
+                  ),
                 ),
+
+                const SizedBox(width: 4),
 
                 Expanded(
                   child: Align(
@@ -246,9 +198,13 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                         color: theme.foreground,
                       ),
                       textAlign: TextAlign.right,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
-                ),              ],
+                ),
+              ],
             ),
           ],
         ),

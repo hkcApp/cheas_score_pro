@@ -54,9 +54,7 @@ class AppTextStyles {
   );
 
   /// General body text
-  static const TextStyle body = TextStyle(
-    fontSize: 16,
-  );
+  static const TextStyle body = TextStyle(fontSize: 16);
 
   /// Small helper text
   static const TextStyle caption = TextStyle(

@@ -26,13 +26,10 @@ class GameService {
 
     if (_currentGame != null) {
       // Starting a new game from an active game.
-      names = _currentGame!.players
-          .map((p) => p.name)
-          .toList();
+      names = _currentGame!.players.map((p) => p.name).toList();
     } else {
       // App just launched or no game in memory.
-      names =
-          await StorageService.instance.loadLastPlayerNames();
+      names = await StorageService.instance.loadLastPlayerNames();
 
       if (names.length != 4) {
         names = List<String>.from(_defaultPlayerNames);
@@ -60,8 +57,7 @@ class GameService {
   }
 
   Future<bool> loadSavedGame() async {
-    final game =
-        await StorageService.instance.loadGame();
+    final game = await StorageService.instance.loadGame();
 
     if (game == null) {
       return false;

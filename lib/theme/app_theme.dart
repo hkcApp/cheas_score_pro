@@ -13,9 +13,7 @@ class AppTheme {
   static ThemeData get light {
     final base = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
     );
 
     return base.copyWith(
@@ -29,9 +27,7 @@ class AppTheme {
 
       cardTheme: CardThemeData(
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -44,9 +40,7 @@ class AppTheme {
       ),
 
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
