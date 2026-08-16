@@ -7,5 +7,5 @@ class AppStrings {
 
   static const String newGame = "New Game";
   static const String gameHistory = "Game History";
-  static const String settings = "Settings";
+  static const String settings = "How to Play Chinese Mahjong";
 }

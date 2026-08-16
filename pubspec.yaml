@@ -15,16 +15,32 @@ dependencies:
   shared_preferences: ^2.5.3
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+
+
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path: "assets/app_icon.png"
+
+  web:
+    generate: true
+    image_path: "assets/app_icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#FFFFFF"
+
+
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/home_photo.png
+    - assets/app_icon.png
   #   - assets/icons/
 
   # Uncomment when you add custom fonts.
@@ -32,3 +48,5 @@ flutter:
   #   - family: YourFont
   #     fonts:
   #       - asset: assets/fonts/YourFont-Regular.ttf
+
+

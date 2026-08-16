@@ -33,38 +33,51 @@ class ScoringTableState extends State<ScoringTable> {
   static const double _ruleNameWidth = 128;
   static const double _pointsWidth = 34;
   static const double _playerColumnWidth = 82;
+
   static const double scoreGridWidth =
       _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 4);
+
   static const double titleGridWidth =
       _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 3);
+
   static const double _sectionTitleHeight = 24;
+
+  // Visual-only settings for the special outcome box.
+  static const double _specialBoxRightTrim = 4;
+  static const double _specialBoxRadius = 6;
 
   final Map<String, List<int>> _quantities = {};
   final Map<String, TextEditingController> _pointControllers = {};
+
   late final ScrollController _headerHorizontalController;
   late final ScrollController _bodyHorizontalController;
   late final ScrollController _leftVerticalController;
   late final ScrollController _rightVerticalController;
+
   bool _syncingHorizontal = false;
   bool _syncingVertical = false;
 
   Iterable<ScoringRule> get _allRules => [
-    ...ScoringRules.baseRules,
-    ...ScoringRules.bonusRules,
-  ];
+        ...ScoringRules.baseRules,
+        ...ScoringRules.bonusRules,
+      ];
 
   @override
   void initState() {
     super.initState();
+
     _headerHorizontalController = ScrollController();
     _bodyHorizontalController = ScrollController();
     _leftVerticalController = ScrollController();
     _rightVerticalController = ScrollController();
+
     _headerHorizontalController.addListener(_syncHeaderScroll);
     _bodyHorizontalController.addListener(_syncBodyHorizontalScroll);
     _leftVerticalController.addListener(_syncLeftVerticalScroll);
     _rightVerticalController.addListener(_syncRightVerticalScroll);
+
     _initialize();
+
     for (final rule in ScoringRules.baseRules) {
       _pointControllers[rule.name] = TextEditingController(
         text: ScoringValueService.instance.getPoints(rule.name).toString(),
@@ -78,9 +91,11 @@ class ScoringTableState extends State<ScoringTable> {
     _bodyHorizontalController.dispose();
     _leftVerticalController.dispose();
     _rightVerticalController.dispose();
+
     for (final controller in _pointControllers.values) {
       controller.dispose();
     }
+
     super.dispose();
   }
 
@@ -98,53 +113,84 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   void _syncHeaderScroll() {
-    if (_syncingHorizontal || !_bodyHorizontalController.hasClients) return;
+    if (_syncingHorizontal || !_bodyHorizontalController.hasClients) {
+      return;
+    }
+
     _syncingHorizontal = true;
-    _bodyHorizontalController.jumpTo(_headerHorizontalController.offset);
+    _bodyHorizontalController.jumpTo(
+      _headerHorizontalController.offset,
+    );
     _syncingHorizontal = false;
   }
 
   void _syncBodyHorizontalScroll() {
-    if (_syncingHorizontal || !_headerHorizontalController.hasClients) return;
+    if (_syncingHorizontal ||
+        !_headerHorizontalController.hasClients) {
+      return;
+    }
+
     _syncingHorizontal = true;
-    _headerHorizontalController.jumpTo(_bodyHorizontalController.offset);
+    _headerHorizontalController.jumpTo(
+      _bodyHorizontalController.offset,
+    );
     _syncingHorizontal = false;
   }
 
   void _syncLeftVerticalScroll() {
-    if (_syncingVertical || !_rightVerticalController.hasClients) return;
+    if (_syncingVertical || !_rightVerticalController.hasClients) {
+      return;
+    }
+
     _syncingVertical = true;
-    _rightVerticalController.jumpTo(_leftVerticalController.offset);
+    _rightVerticalController.jumpTo(
+      _leftVerticalController.offset,
+    );
     _syncingVertical = false;
   }
 
   void _syncRightVerticalScroll() {
-    if (_syncingVertical || !_leftVerticalController.hasClients) return;
+    if (_syncingVertical || !_leftVerticalController.hasClients) {
+      return;
+    }
+
     _syncingVertical = true;
-    _leftVerticalController.jumpTo(_rightVerticalController.offset);
+    _leftVerticalController.jumpTo(
+      _rightVerticalController.offset,
+    );
     _syncingVertical = false;
   }
 
   Future<void> _savePointsValue(String ruleName) async {
     final controller = _pointControllers[ruleName]!;
     final value = int.tryParse(controller.text.trim());
+
     if (value == null) {
       controller.text = ScoringValueService.instance
           .getPoints(ruleName)
           .toString();
       return;
     }
-    await ScoringValueService.instance.setPoints(ruleName, value);
+
+    await ScoringValueService.instance.setPoints(
+      ruleName,
+      value,
+    );
   }
 
   Future<void> resetPointValues() async {
     await ScoringValueService.instance.resetToDefaults();
+
     for (final rule in ScoringRules.baseRules) {
-      _pointControllers[rule.name]!.text = ScoringValueService.instance
+      _pointControllers[rule.name]!.text = ScoringValueService
+          .instance
           .getPoints(rule.name)
           .toString();
     }
-    if (mounted) setState(() {});
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void clearAll() {
@@ -152,13 +198,19 @@ class ScoringTableState extends State<ScoringTable> {
     widget.onChanged(_quantities);
   }
 
-  void _toggleRule(ScoringRule rule, int playerIndex, bool value) {
+  void _toggleRule(
+    ScoringRule rule,
+    int playerIndex,
+    bool value,
+  ) {
     setState(() {
       _quantities[rule.name]![playerIndex] = value ? 1 : 0;
+
       if (value) {
         final group = rule.type == ScoringType.base
             ? ScoringRules.baseRules
             : ScoringRules.bonusRules;
+
         for (final other in group) {
           if (other.name != rule.name) {
             _quantities[other.name]![playerIndex] = 0;
@@ -166,33 +218,43 @@ class ScoringTableState extends State<ScoringTable> {
         }
       }
     });
+
     widget.onChanged(_quantities);
   }
 
   void _selectWinner(int index) {
     if (widget.winnerIndex == index) return;
+
     clearAll();
     widget.onWinnerChanged(index);
   }
 
   Widget _sectionTitle(String title) => Container(
-    height: _sectionTitleHeight,
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-    alignment: Alignment.centerLeft,
-    child: Text(
-      title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-    ),
-  );
+        height: _sectionTitleHeight,
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+          horizontal: 8,
+        ),
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
 
   Widget _leftRow(ScoringRule rule) {
     final label = rule.name;
+
     final fontSize = label.length > 24
         ? 10.0
         : label.length > 18
-        ? 12.0
-        : 14.0;
+            ? 12.0
+            : 14.0;
+
     return SizedBox(
       height: 34,
       child: Row(
@@ -220,7 +282,9 @@ class ScoringTableState extends State<ScoringTable> {
                     child: TextField(
                       controller: _pointControllers[rule.name],
                       keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 14),
                       decoration: const InputDecoration(
@@ -228,19 +292,24 @@ class ScoringTableState extends State<ScoringTable> {
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      onSubmitted: (_) => _savePointsValue(rule.name),
-                      onEditingComplete: () => _savePointsValue(rule.name),
+                      onSubmitted: (_) =>
+                          _savePointsValue(rule.name),
+                      onEditingComplete: () =>
+                          _savePointsValue(rule.name),
                     ),
                   )
                 : Center(
                     child: Text(
-                      rule.name == 'Self-draw Chip Mahjong' ? '摸' : '胡',
+                      rule.name == 'Self-draw Chip Mahjong'
+                          ? '摸'
+                          : '胡',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: rule.name == 'Self-draw Chip Mahjong'
-                            ? Colors.green[800]
-                            : Colors.red[800],
+                        color:
+                            rule.name == 'Self-draw Chip Mahjong'
+                                ? Colors.green[800]
+                                : Colors.red[800],
                       ),
                     ),
                   ),
@@ -251,59 +320,156 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   Widget _rightRow(ScoringRule rule) => SizedBox(
-    height: 34,
-    child: Row(
-      children: List.generate(widget.playerNames.length, (index) {
-        final enabled = index == widget.winnerIndex;
-        final playerTheme = PlayerColors.player(index);
-        return SizedBox(
-          width: _playerColumnWidth,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: enabled
-                    ? playerTheme.background.withValues(alpha: 0.35)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Transform.scale(
-                scale: 1.3,
-                child: Checkbox.adaptive(
-                  value: _quantities[rule.name]![index] > 0,
-                  shape: const CircleBorder(),
-                  side: BorderSide(color: playerTheme.accent, width: 1.6),
-                  activeColor: playerTheme.accent,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: enabled
-                      ? (value) => _toggleRule(rule, index, value ?? false)
-                      : null,
+        height: 34,
+        child: Row(
+          children: List.generate(
+            widget.playerNames.length,
+            (index) {
+              final enabled = index == widget.winnerIndex;
+              final playerTheme = PlayerColors.player(index);
+
+              return SizedBox(
+                width: _playerColumnWidth,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: enabled
+                          ? playerTheme.background.withValues(
+                              alpha: 0.35,
+                            )
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Transform.scale(
+                      scale: 1.3,
+                      child: Checkbox.adaptive(
+                        value:
+                            _quantities[rule.name]![index] > 0,
+                        shape: const CircleBorder(),
+                        side: BorderSide(
+                          color: playerTheme.accent,
+                          width: 1.6,
+                        ),
+                        activeColor: playerTheme.accent,
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                        onChanged: enabled
+                            ? (value) => _toggleRule(
+                                  rule,
+                                  index,
+                                  value ?? false,
+                                )
+                            : null,
+                      ),
+                    ),
+                  ),
                 ),
+              );
+            },
+          ),
+        ),
+      );
+
+  // The left half of the special-outcome background.
+  Widget _specialOutcomeLeftBackground() {
+    final top =
+        _sectionTitleHeight +
+        (ScoringRules.baseRules.length * 34) +
+        12;
+
+    return Positioned(
+      left: 0,
+      top: top,
+      width: _ruleNameWidth + _pointsWidth,
+      height: ScoringRules.bonusRules.length * 34,
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.08),
+            border: Border(
+              top: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
+              ),
+              bottom: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
+              ),
+              left: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
               ),
             ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(_specialBoxRadius),
+              bottomLeft: Radius.circular(_specialBoxRadius),
+            ),
           ),
-        );
-      }),
-    ),
-  );
+        ),
+      ),
+    );
+  }
+
+  // The right half of the special-outcome background.
+  //
+  // The background is intentionally 4 pixels narrower on the right.
+  // The actual player columns remain unchanged.
+  Widget _specialOutcomeRightBackground() {
+    final top =
+        _sectionTitleHeight +
+        (ScoringRules.baseRules.length * 34) +
+        12;
+
+    final width =
+        (_playerColumnWidth * widget.playerNames.length) -
+        _specialBoxRightTrim;
+
+    return Positioned(
+      left: 0,
+      top: top,
+      width: width,
+      height: ScoringRules.bonusRules.length * 34,
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.08),
+            border: Border(
+              top: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
+              ),
+              bottom: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
+              ),
+              right: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.25),
+              ),
+            ),
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(_specialBoxRadius),
+              bottomRight: Radius.circular(_specialBoxRadius),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   List<Widget> _leftBody() => [
-    _sectionTitle('BASE POINTS'),
-    ...ScoringRules.baseRules.map(_leftRow),
-    const SizedBox(height: 12),
-    ...ScoringRules.bonusRules.map(_leftRow),
-  ];
+        _sectionTitle('BASE POINTS'),
+        ...ScoringRules.baseRules.map(_leftRow),
+        const SizedBox(height: 12),
+        ...ScoringRules.bonusRules.map(_leftRow),
+      ];
 
   List<Widget> _rightBody() => [
-    const SizedBox(height: _sectionTitleHeight),
-    ...ScoringRules.baseRules.map(_rightRow),
-    const SizedBox(height: 12),
-    ...ScoringRules.bonusRules.map(_rightRow),
-  ];
+        const SizedBox(height: _sectionTitleHeight),
+        ...ScoringRules.baseRules.map(_rightRow),
+        const SizedBox(height: 12),
+        ...ScoringRules.bonusRules.map(_rightRow),
+      ];
 
   @override
   Widget build(BuildContext context) {
     final game = GameService.instance.currentGame!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -325,7 +491,10 @@ class ScoringTableState extends State<ScoringTable> {
                   const SizedBox(height: 2),
                   Text(
                     'Honor: Winds and Dragons',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                    ),
                   ),
                 ],
               ),
@@ -335,32 +504,48 @@ class ScoringTableState extends State<ScoringTable> {
                 controller: _headerHorizontalController,
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: List.generate(game.players.length, (index) {
-                    final player = game.players[index];
-                    return SizedBox(
-                      width: _playerColumnWidth,
-                      child: PlayerHeader(
-                        key: ValueKey('${player.id}-${player.wind}'),
-                        playerIndex: index,
-                        playerName: player.name,
-                        runningTotal: player.score,
-                        wind: player.wind,
-                        isWinner: widget.winnerIndex == index,
-                        onWinnerTapped: () => _selectWinner(index),
-                        onNameChanged: (name) {
-                          setState(() => player.name = name);
-                          widget.onPlayerNameChanged(index, name);
-                          GameService.instance.saveCurrentGame();
-                        },
-                        canSelectEast: game.round == 1,
-                        onEastTapped: () async {
-                          if (game.round != 1) return;
-                          setState(() => game.setStartingEast(index));
-                          await GameService.instance.saveCurrentGame();
-                        },
-                      ),
-                    );
-                  }),
+                  children: List.generate(
+                    game.players.length,
+                    (index) {
+                      final player = game.players[index];
+
+                      return SizedBox(
+                        width: _playerColumnWidth,
+                        child: PlayerHeader(
+                          key: ValueKey(
+                            '${player.id}-${player.wind}',
+                          ),
+                          playerIndex: index,
+                          playerName: player.name,
+                          runningTotal: player.score,
+                          wind: player.wind,
+                          isWinner: widget.winnerIndex == index,
+                          onWinnerTapped: () =>
+                              _selectWinner(index),
+                          onNameChanged: (name) {
+                            setState(() => player.name = name);
+                            widget.onPlayerNameChanged(
+                              index,
+                              name,
+                            );
+                            GameService.instance
+                                .saveCurrentGame();
+                          },
+                          canSelectEast: game.round == 1,
+                          onEastTapped: () async {
+                            if (game.round != 1) return;
+
+                            setState(
+                              () => game.setStartingEast(index),
+                            );
+
+                            await GameService.instance
+                                .saveCurrentGame();
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -375,9 +560,15 @@ class ScoringTableState extends State<ScoringTable> {
                 width: _ruleNameWidth + _pointsWidth,
                 child: SingleChildScrollView(
                   controller: _leftVerticalController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _leftBody(),
+                  child: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: _leftBody(),
+                      ),
+                      _specialOutcomeLeftBackground(),
+                    ],
                   ),
                 ),
               ),
@@ -388,12 +579,19 @@ class ScoringTableState extends State<ScoringTable> {
                     controller: _bodyHorizontalController,
                     scrollDirection: Axis.horizontal,
                     child: SizedBox(
-                      width: _playerColumnWidth * widget.playerNames.length,
+                      width: _playerColumnWidth *
+                          widget.playerNames.length,
                       child: SingleChildScrollView(
                         controller: _rightVerticalController,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _rightBody(),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: _rightBody(),
+                            ),
+                            _specialOutcomeRightBackground(),
+                          ],
                         ),
                       ),
                     ),

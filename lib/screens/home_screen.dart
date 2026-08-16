@@ -45,7 +45,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.appTitle), centerTitle: true),
+      appBar: AppBar(
+        title: const Text(AppStrings.appTitle),
+        centerTitle: true,
+      ),
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
@@ -80,11 +83,15 @@ class HomeScreen extends StatelessWidget {
                 const Text(
                   AppStrings.welcome,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
 
                 const SizedBox(height: 40),
 
+                // NEW GAME
                 MenuButton(
                   icon: Icons.play_arrow,
                   title: AppStrings.newGame,
@@ -93,19 +100,7 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                MenuButton(
-                  icon: Icons.help_outline,
-                  title: 'Help',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HelpScreen()),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
+                // RESUME SAVED GAME
                 MenuButton(
                   icon: Icons.restore,
                   title: "Resume Saved Game",
@@ -114,26 +109,48 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                // HELP
                 MenuButton(
-                  icon: Icons.history,
-                  title: AppStrings.gameHistory,
+                  icon: Icons.help_outline,
+                  title: 'Help',
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const HelpScreen(),
+                      ),
                     );
                   },
                 ),
 
                 const SizedBox(height: 16),
 
+                // GAME HISTORY
+                MenuButton(
+                  icon: Icons.history,
+                  title: AppStrings.gameHistory,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const HistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // SETTINGS
                 MenuButton(
                   icon: Icons.settings,
                   title: AppStrings.settings,
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsScreen(),
+                      ),
                     );
                   },
                 ),

@@ -14,34 +14,39 @@ class ScoreScreen extends StatefulWidget {
 }
 
 class _ScoreScreenState extends State<ScoreScreen> {
-  final GlobalKey<ScoringTableState> _tableKey = GlobalKey<ScoringTableState>();
+  final GlobalKey<ScoringTableState> _tableKey =
+      GlobalKey<ScoringTableState>();
+
   int winnerIndex = -1;
   Map<String, List<int>> currentQuantities = {};
 
   Widget _buildScoreBoardTitle() => Transform.translate(
-    offset: const Offset(-44, 0),
-    child: SizedBox(
-      width: ScoringTableState.titleGridWidth,
-      child: const Center(
-        child: Text(
-          "🀄 Chea's Mahjong Score Board",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        offset: const Offset(-44, 0),
+        child: SizedBox(
+          width: ScoringTableState.titleGridWidth,
+          child: const Center(
+            child: Text(
+              "🀄 Chea's Mahjong Score Board",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
-      ),
-    ),
-  );
+      );
 
   @override
   void initState() {
     super.initState();
+
     ScoringValueService.instance.load().then((_) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -49,15 +54,21 @@ class _ScoreScreenState extends State<ScoreScreen> {
     setState(() {
       winnerIndex = index;
     });
+
     _tableKey.currentState?.clearAll();
   }
 
   Future<void> _resetDefaultPoints() async {
     await _tableKey.currentState?.resetPointValues();
+
     if (!mounted) return;
+
     setState(() {});
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Point values reset to defaults.')),
+      const SnackBar(
+        content: Text('Point values reset to defaults.'),
+      ),
     );
   }
 
@@ -67,6 +78,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
         return ScoringValueService.instance.getPoints(rule.name);
       }
     }
+
     return 0;
   }
 
@@ -74,21 +86,24 @@ class _ScoreScreenState extends State<ScoreScreen> {
       (currentQuantities[ruleName]?[winnerIndex] ?? 0) > 0;
 
   Map<String, int> _selectedOutcomes() => {
-    for (final rule in ScoringRules.bonusRules)
-      if (_hasOutcome(rule.name)) rule.name: 1,
-  };
+        for (final rule in ScoringRules.bonusRules)
+          if (_hasOutcome(rule.name)) rule.name: 1,
+      };
 
   Future<void> _saveRound() async {
     final game = GameService.instance.currentGame;
+
     if (game == null) return;
 
     final basePoints = _selectedBasePoints();
     final loserCount = game.players.length - 1;
+
     final multiplier = _hasOutcome('Discarded Chip Mahjong')
         ? loserCount + 1
         : _hasOutcome('Self-draw Chip Mahjong')
-        ? loserCount
-        : 1;
+            ? loserCount
+            : 1;
+
     final scores = <int, int>{
       for (var index = 0; index < game.players.length; index++)
         game.players[index].id: index == winnerIndex
@@ -103,40 +118,64 @@ class _ScoreScreenState extends State<ScoreScreen> {
       baseQuantities: currentQuantities,
       bonusQuantities: _selectedOutcomes(),
     );
+
     if (!success) return;
+
     await GameService.instance.saveCurrentGame();
+
     if (!mounted) return;
-    setState(() {});
+
+    FocusManager.instance.primaryFocus?.unfocus();
+
     _tableKey.currentState?.clearAll();
     currentQuantities.clear();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Round saved')));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Round saved'),
+        duration: Duration(milliseconds: 200),
+      ),
+    );
   }
 
   Future<void> _undoLastRound() async {
     final game = GameService.instance.currentGame;
+
     if (game == null) return;
+
     if (!const ScoreService().undoLastHand(game: game)) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Nothing to undo.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nothing to undo.'),
+          ),
+        );
       }
+
       return;
     }
+
     await GameService.instance.saveCurrentGame();
+
     if (!mounted) return;
+
     setState(() {});
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Last round undone.')));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Last round undone.'),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final game = GameService.instance.currentGame;
-    if (winnerIndex == -1) winnerIndex = game?.eastIndex ?? 0;
+
+    if (winnerIndex == -1) {
+      winnerIndex = game?.eastIndex ?? 0;
+    }
+
     if (game == null) {
       return Scaffold(
         appBar: AppBar(
@@ -144,9 +183,12 @@ class _ScoreScreenState extends State<ScoreScreen> {
           titleSpacing: 0,
           title: _buildScoreBoardTitle(),
         ),
-        body: const Center(child: Text('No active game.')),
+        body: const Center(
+          child: Text('No active game.'),
+        ),
       );
     }
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -162,19 +204,29 @@ class _ScoreScreenState extends State<ScoreScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ScoringTable(
                 key: _tableKey,
-                playerNames: game.players.map((player) => player.name).toList(),
+                playerNames: game.players
+                    .map((player) => player.name)
+                    .toList(),
                 runningTotals: game.players
                     .map((player) => player.score)
                     .toList(),
                 winnerIndex: winnerIndex,
                 onWinnerChanged: _winnerChanged,
                 onPlayerNameChanged: (index, name) {
-                  setState(() => game.players[index].name = name);
+                  setState(() {
+                    game.players[index].name = name;
+                  });
+
                   GameService.instance.saveCurrentGame();
                 },
-                onChanged: (values) => currentQuantities = values.map(
-                  (key, value) => MapEntry(key, List<int>.from(value)),
-                ),
+                onChanged: (values) {
+                  currentQuantities = values.map(
+                    (key, value) => MapEntry(
+                      key,
+                      List<int>.from(value),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -183,20 +235,30 @@ class _ScoreScreenState extends State<ScoreScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: SizedBox(
-                width: ScoringTableState.scoreGridWidth,
+                // 128 rule name
+                // + 34 points
+                // + 82 player 1
+                // + 82 player 2
+                //
+                // This places the right edge of SAVE ROUND
+                // exactly at the left edge of Player 3.
+                width: 326,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: 110,
+                      width: 80,
                       height: 46,
                       child: ElevatedButton(
                         onPressed: _undoLastRound,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
+                          padding: EdgeInsets.zero,
                         ),
                         child: const Text(
                           'UNDO',
+                          maxLines: 1,
+                          softWrap: false,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -205,28 +267,36 @@ class _ScoreScreenState extends State<ScoreScreen> {
                       ),
                     ),
                     SizedBox(
-                      width: 180,
+                      width: 80,
                       height: 46,
                       child: OutlinedButton(
                         onPressed: _resetDefaultPoints,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
                         child: const Text(
-                          'Reset Default',
+                          'RESET',
+                          maxLines: 1,
+                          softWrap: false,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 1,
-                          softWrap: false,
                         ),
                       ),
                     ),
                     SizedBox(
-                      width: 170,
+                      width: 120,
                       height: 46,
                       child: ElevatedButton(
                         onPressed: _saveRound,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
                         child: const Text(
                           'SAVE ROUND',
+                          maxLines: 1,
+                          softWrap: false,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
