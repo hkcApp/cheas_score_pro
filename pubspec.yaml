@@ -2,7 +2,7 @@ name: chea_score_pro
 description: Chea's Mahjong Scoreboard
 publish_to: "none"
 
-version: 2.2.0+2
+version: 2.3.0+3
 
 environment:
   sdk: ^3.12.2
@@ -23,9 +23,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Uncomment when you add assets.
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/images/home_photo.png
   #   - assets/icons/
 
   # Uncomment when you add custom fonts.

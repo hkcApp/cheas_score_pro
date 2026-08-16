@@ -54,10 +54,14 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.casino,
-                  size: 96,
-                  color: Theme.of(context).colorScheme.primary,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/images/home_photo.png',
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                  ),
                 ),
 
                 const SizedBox(height: 24),
