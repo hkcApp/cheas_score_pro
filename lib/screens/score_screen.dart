@@ -51,6 +51,16 @@ class _ScoreScreenState extends State<ScoreScreen> {
   }
 
   void _winnerChanged(int index) {
+    final game = GameService.instance.currentGame;
+
+    if (game == null) return;
+
+    // An empty player name means the player is inactive.
+    // Inactive players cannot be selected as the winner.
+    if (game.players[index].name.trim().isEmpty) {
+      return;
+    }
+
     setState(() {
       winnerIndex = index;
     });
@@ -96,7 +106,12 @@ class _ScoreScreenState extends State<ScoreScreen> {
     if (game == null) return;
 
     final basePoints = _selectedBasePoints();
-    final loserCount = game.players.length - 1;
+
+    final activePlayerCount = game.players
+        .where((player) => player.name.trim().isNotEmpty)
+        .length;
+
+    final loserCount = activePlayerCount - 1;
 
     final multiplier = _hasOutcome('Discarded Chip Mahjong')
         ? loserCount + 1
@@ -172,8 +187,21 @@ class _ScoreScreenState extends State<ScoreScreen> {
   Widget build(BuildContext context) {
     final game = GameService.instance.currentGame;
 
-    if (winnerIndex == -1) {
-      winnerIndex = game?.eastIndex ?? 0;
+    if (winnerIndex == -1 && game != null) {
+      final east = game.eastIndex;
+
+      if (east >= 0 &&
+          game.players[east].name.trim().isNotEmpty) {
+        winnerIndex = east;
+      } else {
+        winnerIndex = game.players.indexWhere(
+          (player) => player.name.trim().isNotEmpty,
+        );
+
+        if (winnerIndex == -1) {
+          winnerIndex = 0;
+        }
+      }
     }
 
     if (game == null) {
@@ -213,12 +241,39 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 winnerIndex: winnerIndex,
                 onWinnerChanged: _winnerChanged,
                 onPlayerNameChanged: (index, name) {
+                  final trimmedName = name.trim();
+
+                  // An inactive player must always be the highest-numbered
+                  // inactive player.
+                  if (trimmedName.isEmpty) {
+                    for (var i = index + 1;
+                        i < game.players.length;
+                        i++) {
+                      if (game.players[i].name.trim().isNotEmpty) {
+                        return;
+                      }
+                    }
+                  }
+
                   setState(() {
-                    game.players[index].name = name;
+                    game.players[index].name = trimmedName;
+
+                    // If the current winner becomes inactive,
+                    // select the first remaining active player.
+                    if (trimmedName.isEmpty && winnerIndex == index) {
+                      winnerIndex = game.players.indexWhere(
+                        (player) => player.name.trim().isNotEmpty,
+                      );
+
+                      if (winnerIndex == -1) {
+                        winnerIndex = 0;
+                      }
+                    }
                   });
 
                   GameService.instance.saveCurrentGame();
                 },
+
                 onChanged: (values) {
                   currentQuantities = values.map(
                     (key, value) => MapEntry(

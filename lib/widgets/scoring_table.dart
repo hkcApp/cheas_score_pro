@@ -223,6 +223,11 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   void _selectWinner(int index) {
+    // An empty player name means the player is inactive.
+    if (widget.playerNames[index].trim().isEmpty) {
+      return;
+    }
+
     if (widget.winnerIndex == index) return;
 
     clearAll();

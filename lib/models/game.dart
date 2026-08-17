@@ -3,14 +3,14 @@ import 'score_transaction.dart';
 
 class Game {
   Game({List<Player>? players, this.round = 1, this.dealer = 0})
-    : players =
-          players ??
-          [
-            Player(id: 1, name: 'Player 1', wind: 'E'),
-            Player(id: 2, name: 'Player 2', wind: 'S'),
-            Player(id: 3, name: 'Player 3', wind: 'W'),
-            Player(id: 4, name: 'Player 4', wind: 'N'),
-          ];
+      : players =
+            players ??
+            [
+              Player(id: 1, name: 'Player 1', wind: 'E'),
+              Player(id: 2, name: 'Player 2', wind: 'S'),
+              Player(id: 3, name: 'Player 3', wind: 'W'),
+              Player(id: 4, name: 'Player 4', wind: 'N'),
+            ];
 
   final List<Player> players;
 
@@ -80,7 +80,11 @@ class Game {
   factory Game.fromJson(Map<String, dynamic> json) {
     final game = Game(
       players: (json['players'] as List)
-          .map((item) => Player.fromJson(Map<String, dynamic>.from(item)))
+          .map(
+            (item) => Player.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
           .toList(),
       round: json['round'] as int,
       dealer: json['dealer'] as int,
@@ -88,7 +92,9 @@ class Game {
 
     game.transactions.addAll(
       (json['transactions'] as List).map(
-        (item) => ScoreTransaction.fromJson(Map<String, dynamic>.from(item)),
+        (item) => ScoreTransaction.fromJson(
+          Map<String, dynamic>.from(item),
+        ),
       ),
     );
 
@@ -106,24 +112,51 @@ class Game {
     }
   }
 
+  /// Rotate winds among ACTIVE players only.
+  ///
+  /// An empty player name means the player is inactive.
+  /// Inactive players are skipped completely during rotation.
   void rotateWinds() {
-    if (players.isEmpty) {
+    final activePlayers = players
+        .where(
+          (player) => player.name.trim().isNotEmpty,
+        )
+        .toList();
+
+    if (activePlayers.isEmpty) {
       return;
     }
 
-    // Move each player's current wind to the next player in display order:
-    // Haig -> Ravy -> Lisa -> Chris. This moves East from the first player
-    // to the second player, rather than changing East itself into South.
-    final previousWinds = players.map((player) => player.wind).toList();
-    for (var index = 0; index < players.length; index++) {
-      players[(index + 1) % players.length].wind = previousWinds[index];
+    // Save the current winds of active players only.
+    final previousWinds = activePlayers
+        .map((player) => player.wind)
+        .toList();
+
+    // Move each active player's wind to the next active player.
+    // Inactive players are completely skipped.
+    for (var index = 0; index < activePlayers.length; index++) {
+      activePlayers[(index + 1) % activePlayers.length].wind =
+          previousWinds[index];
     }
   }
 
+  /// Update winds after a round.
+  ///
+  /// If East wins, East remains East.
+  /// If another active player wins, winds rotate among
+  /// active players only.
   void updateWindsAfterRound(int winnerId) {
-    final east = players.firstWhere((p) => p.wind == "E");
+    final eastIndex = players.indexWhere(
+      (player) =>
+          player.wind == "E" &&
+          player.name.trim().isNotEmpty,
+    );
 
-    if (east.id != winnerId) {
+    if (eastIndex == -1) {
+      return;
+    }
+
+    if (players[eastIndex].id != winnerId) {
       rotateWinds();
     }
   }
