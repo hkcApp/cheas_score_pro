@@ -2,15 +2,24 @@ import 'player.dart';
 import 'score_transaction.dart';
 
 class Game {
-  Game({List<Player>? players, this.round = 1, this.dealer = 0})
-      : players =
+  Game({
+    List<Player>? players,
+    this.round = 1,
+    this.dealer = 0,
+    Map<String, int>? lastWinningSelections,
+    this.lastWinningPlayerId,
+  })  : players =
             players ??
             [
               Player(id: 1, name: 'Player 1', wind: 'E'),
               Player(id: 2, name: 'Player 2', wind: 'S'),
               Player(id: 3, name: 'Player 3', wind: 'W'),
               Player(id: 4, name: 'Player 4', wind: 'N'),
-            ];
+            ],
+        lastWinningSelections =
+            lastWinningSelections != null
+                ? Map<String, int>.from(lastWinningSelections)
+                : {};
 
   final List<Player> players;
 
@@ -19,6 +28,20 @@ class Game {
   int round;
 
   int dealer;
+
+  /// The player ID of the most recent winner.
+  ///
+  /// This is persisted so Resume Game can restore the actual
+  /// winner instead of defaulting to East.
+  int? lastWinningPlayerId;
+
+  /// The complete selection made by the most recent winner.
+  ///
+  /// This includes:
+  /// - the selected Base Point pattern
+  /// - Self-draw Chip Mahjong, if selected
+  /// - Discarded Chip Mahjong, if selected
+  Map<String, int> lastWinningSelections;
 
   void setPlayerNames(List<String> names) {
     for (int i = 0; i < players.length && i < names.length; i++) {
@@ -54,6 +77,10 @@ class Game {
     round = 1;
     dealer = 0;
 
+    // A reset game has no previous winner or winning pattern.
+    lastWinningPlayerId = null;
+    lastWinningSelections.clear();
+
     players[0].wind = "E";
     players[1].wind = "S";
     players[2].wind = "W";
@@ -74,10 +101,29 @@ class Game {
       'transactions': transactions.map((t) => t.toJson()).toList(),
       'round': round,
       'dealer': dealer,
+      'lastWinningPlayerId': lastWinningPlayerId,
+      'lastWinningSelections': lastWinningSelections,
     };
   }
 
   factory Game.fromJson(Map<String, dynamic> json) {
+    final savedSelections =
+        json['lastWinningSelections'] is Map
+            ? Map<String, int>.from(
+                (json['lastWinningSelections'] as Map).map(
+                  (key, value) => MapEntry(
+                    key.toString(),
+                    (value as num).toInt(),
+                  ),
+                ),
+              )
+            : <String, int>{};
+
+    final savedWinnerId =
+        json['lastWinningPlayerId'] == null
+            ? null
+            : (json['lastWinningPlayerId'] as num).toInt();
+
     final game = Game(
       players: (json['players'] as List)
           .map(
@@ -88,6 +134,8 @@ class Game {
           .toList(),
       round: json['round'] as int,
       dealer: json['dealer'] as int,
+      lastWinningPlayerId: savedWinnerId,
+      lastWinningSelections: savedSelections,
     );
 
     game.transactions.addAll(
@@ -127,13 +175,10 @@ class Game {
       return;
     }
 
-    // Save the current winds of active players only.
     final previousWinds = activePlayers
         .map((player) => player.wind)
         .toList();
 
-    // Move each active player's wind to the next active player.
-    // Inactive players are completely skipped.
     for (var index = 0; index < activePlayers.length; index++) {
       activePlayers[(index + 1) % activePlayers.length].wind =
           previousWinds[index];

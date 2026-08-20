@@ -43,6 +43,42 @@ class _ScoreScreenState extends State<ScoreScreen> {
   void initState() {
     super.initState();
 
+    final game = GameService.instance.currentGame;
+
+    if (game != null) {
+      // Restore the actual previous winner when resuming a saved game.
+      if (game.lastWinningPlayerId != null) {
+        final savedWinnerIndex = game.players.indexWhere(
+          (player) =>
+              player.id == game.lastWinningPlayerId &&
+              player.name.trim().isNotEmpty,
+        );
+
+        if (savedWinnerIndex >= 0) {
+          winnerIndex = savedWinnerIndex;
+        }
+      }
+
+      // If there is no saved winner, retain the existing
+      // behavior of starting with East.
+      if (winnerIndex == -1) {
+        final east = game.eastIndex;
+
+        if (east >= 0 &&
+            game.players[east].name.trim().isNotEmpty) {
+          winnerIndex = east;
+        } else {
+          winnerIndex = game.players.indexWhere(
+            (player) => player.name.trim().isNotEmpty,
+          );
+
+          if (winnerIndex == -1) {
+            winnerIndex = 0;
+          }
+        }
+      }
+    }
+
     ScoringValueService.instance.load().then((_) {
       if (mounted) {
         setState(() {});
@@ -55,8 +91,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     if (game == null) return;
 
-    // An empty player name means the player is inactive.
-    // Inactive players cannot be selected as the winner.
+    // Empty player names represent inactive players.
     if (game.players[index].name.trim().isEmpty) {
       return;
     }
@@ -65,7 +100,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
       winnerIndex = index;
     });
 
-    _tableKey.currentState?.clearAll();
+    // Carry the previous winner's Base Point and Mahjong
+    // outcome selections to the newly selected winner.
+    _tableKey.currentState?.prepareNextRound();
   }
 
   Future<void> _resetDefaultPoints() async {
@@ -100,15 +137,42 @@ class _ScoreScreenState extends State<ScoreScreen> {
           if (_hasOutcome(rule.name)) rule.name: 1,
       };
 
+  /// Captures the complete selection belonging to the current winner.
+  ///
+  /// This is saved with the game so Resume Game knows both:
+  /// - who the previous winner was
+  /// - which Base Point and Mahjong outcome selections were used
+  Map<String, int> _currentWinnerSelections() {
+    if (winnerIndex < 0 ||
+        winnerIndex >= currentQuantities.length) {
+      return {};
+    }
+
+    final selections = <String, int>{};
+
+    for (final rule in [
+      ...ScoringRules.baseRules,
+      ...ScoringRules.bonusRules,
+    ]) {
+      if ((currentQuantities[rule.name]?[winnerIndex] ?? 0) > 0) {
+        selections[rule.name] = 1;
+      }
+    }
+
+    return selections;
+  }
+
   Future<void> _saveRound() async {
     final game = GameService.instance.currentGame;
 
-    if (game == null) return;
+    if (game == null || winnerIndex < 0) return;
 
     final basePoints = _selectedBasePoints();
 
     final activePlayerCount = game.players
-        .where((player) => player.name.trim().isNotEmpty)
+        .where(
+          (player) => player.name.trim().isNotEmpty,
+        )
         .length;
 
     final loserCount = activePlayerCount - 1;
@@ -136,14 +200,23 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     if (!success) return;
 
+    // Persist the actual winner.
+    game.lastWinningPlayerId =
+        game.players[winnerIndex].id;
+
+    // Persist that winner's complete selection.
+    game.lastWinningSelections =
+        _currentWinnerSelections();
+
     await GameService.instance.saveCurrentGame();
 
     if (!mounted) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
 
-    _tableKey.currentState?.clearAll();
-    currentQuantities.clear();
+    // Prepare the table for the next winner while retaining
+    // the previous winner's selections.
+    _tableKey.currentState?.prepareNextRound();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -187,23 +260,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
   Widget build(BuildContext context) {
     final game = GameService.instance.currentGame;
 
-    if (winnerIndex == -1 && game != null) {
-      final east = game.eastIndex;
-
-      if (east >= 0 &&
-          game.players[east].name.trim().isNotEmpty) {
-        winnerIndex = east;
-      } else {
-        winnerIndex = game.players.indexWhere(
-          (player) => player.name.trim().isNotEmpty,
-        );
-
-        if (winnerIndex == -1) {
-          winnerIndex = 0;
-        }
-      }
-    }
-
     if (game == null) {
       return Scaffold(
         appBar: AppBar(
@@ -229,7 +285,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
           const Divider(height: 8),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+              ),
               child: ScoringTable(
                 key: _tableKey,
                 playerNames: game.players
@@ -243,8 +301,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 onPlayerNameChanged: (index, name) {
                   final trimmedName = name.trim();
 
-                  // An inactive player must always be the highest-numbered
-                  // inactive player.
+                  // An inactive player must always be the
+                  // highest-numbered inactive player.
                   if (trimmedName.isEmpty) {
                     for (var i = index + 1;
                         i < game.players.length;
@@ -260,9 +318,11 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
                     // If the current winner becomes inactive,
                     // select the first remaining active player.
-                    if (trimmedName.isEmpty && winnerIndex == index) {
+                    if (trimmedName.isEmpty &&
+                        winnerIndex == index) {
                       winnerIndex = game.players.indexWhere(
-                        (player) => player.name.trim().isNotEmpty,
+                        (player) =>
+                            player.name.trim().isNotEmpty,
                       );
 
                       if (winnerIndex == -1) {
@@ -273,7 +333,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
                   GameService.instance.saveCurrentGame();
                 },
-
                 onChanged: (values) {
                   currentQuantities = values.map(
                     (key, value) => MapEntry(
@@ -286,20 +345,19 @@ class _ScoreScreenState extends State<ScoreScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            padding: const EdgeInsets.fromLTRB(
+              12,
+              8,
+              12,
+              12,
+            ),
             child: Align(
               alignment: Alignment.centerLeft,
               child: SizedBox(
-                // 128 rule name
-                // + 34 points
-                // + 82 player 1
-                // + 82 player 2
-                //
-                // This places the right edge of SAVE ROUND
-                // exactly at the left edge of Player 3.
                 width: 326,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
                       width: 80,

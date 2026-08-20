@@ -7,29 +7,11 @@ import '../widgets/menu_button.dart';
 
 import 'history_screen.dart';
 import 'help_screen.dart';
+import 'how_to_play_screen.dart';
 import 'score_screen.dart';
-import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  Future<void> _resumeGame(BuildContext context) async {
-    final loaded = await GameService.instance.loadSavedGame();
-
-    if (!context.mounted) return;
-
-    // If no saved game exists, start a new one.
-    if (!loaded) {
-      await GameService.instance.startNewGame();
-    }
-
-    if (!context.mounted) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ScoreScreen()),
-    );
-  }
 
   Future<void> _newGame(BuildContext context) async {
     await GameService.instance.startNewGame();
@@ -38,7 +20,55 @@ class HomeScreen extends StatelessWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ScoreScreen()),
+      MaterialPageRoute(
+        builder: (_) => const ScoreScreen(),
+      ),
+    );
+  }
+
+  Future<void> _resumeGame(BuildContext context) async {
+    final loaded = await GameService.instance.loadSavedGame();
+
+    if (!context.mounted) return;
+
+    if (!loaded) {
+      await GameService.instance.startNewGame();
+    }
+
+    if (!context.mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ScoreScreen(),
+      ),
+    );
+  }
+
+  void _openGameHistory(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HistoryScreen(),
+      ),
+    );
+  }
+
+  void _openGameRules(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HelpScreen(),
+      ),
+    );
+  }
+
+  void _openHowToPlay(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const HowToPlayScreen(),
+      ),
     );
   }
 
@@ -91,7 +121,7 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 40),
 
-                // NEW GAME
+                // 1. NEW GAME
                 MenuButton(
                   icon: Icons.play_arrow,
                   title: AppStrings.newGame,
@@ -100,59 +130,38 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // RESUME SAVED GAME
+                // 2. RESUME SAVED GAME
                 MenuButton(
                   icon: Icons.restore,
-                  title: "Resume Saved Game",
+                  title: 'Resume Saved Game',
                   onPressed: () => _resumeGame(context),
                 ),
 
                 const SizedBox(height: 16),
 
-                // HELP
-                MenuButton(
-                  icon: Icons.help_outline,
-                  title: 'Help',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const HelpScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // GAME HISTORY
+                // 3. GAME HISTORY
                 MenuButton(
                   icon: Icons.history,
                   title: AppStrings.gameHistory,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const HistoryScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: () => _openGameHistory(context),
                 ),
 
                 const SizedBox(height: 16),
 
-                // SETTINGS
+                // 4. GAME RULES
                 MenuButton(
-                  icon: Icons.settings,
-                  title: AppStrings.settings,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsScreen(),
-                      ),
-                    );
-                  },
+                  icon: Icons.rule,
+                  title: 'Game Rules',
+                  onPressed: () => _openGameRules(context),
+                ),
+
+                const SizedBox(height: 16),
+
+                // 5. HOW TO PLAY CHINESE MAHJONG
+                MenuButton(
+                  icon: Icons.menu_book,
+                  title: 'How to Play Chinese Mahjong',
+                  onPressed: () => _openHowToPlay(context),
                 ),
               ],
             ),

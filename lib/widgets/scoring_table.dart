@@ -30,7 +30,9 @@ class ScoringTable extends StatefulWidget {
 }
 
 class ScoringTableState extends State<ScoringTable> {
-  static const double _ruleNameWidth = 128;
+  // Reduced from 128 to 110 to make the first column
+  // approximately three characters narrower.
+  static const double _ruleNameWidth = 110;
   static const double _pointsWidth = 34;
   static const double _playerColumnWidth = 82;
 
@@ -48,6 +50,17 @@ class ScoringTableState extends State<ScoringTable> {
 
   final Map<String, List<int>> _quantities = {};
   final Map<String, TextEditingController> _pointControllers = {};
+
+  // Remembers the complete selection made by the most recent winner.
+  // This includes both the Base Point pattern and the Mahjong outcome
+  // (Self-draw / Discarded Chip). The selections are carried forward
+  // to the next winner, including after SAVE ROUND.
+  Map<String, int> _carryForwardSelections = {};
+
+  // When the parent changes winner it currently calls clearAll(). The
+  // parent rebuild happens after the callback, so we temporarily remember
+  // which player should receive the carried-forward selections.
+  int? _pendingWinnerIndex;
 
   late final ScrollController _headerHorizontalController;
   late final ScrollController _bodyHorizontalController;
@@ -78,6 +91,19 @@ class ScoringTableState extends State<ScoringTable> {
 
     _initialize();
 
+    // Restore the most recent winner's complete selection when
+    // returning to the score screen through Resume Game.
+    final game = GameService.instance.currentGame;
+
+    if (game != null &&
+        widget.winnerIndex >= 0 &&
+        game.lastWinningSelections.isNotEmpty) {
+      _initialize(
+        populatePlayerIndex: widget.winnerIndex,
+        selections: game.lastWinningSelections,
+      );
+    }
+
     for (final rule in ScoringRules.baseRules) {
       _pointControllers[rule.name] = TextEditingController(
         text: ScoringValueService.instance.getPoints(rule.name).toString(),
@@ -99,7 +125,10 @@ class ScoringTableState extends State<ScoringTable> {
     super.dispose();
   }
 
-  void _initialize() {
+  void _initialize({
+    int? populatePlayerIndex,
+    Map<String, int>? selections,
+  }) {
     _quantities
       ..clear()
       ..addEntries(
@@ -110,6 +139,42 @@ class ScoringTableState extends State<ScoringTable> {
           ),
         ),
       );
+
+    if (populatePlayerIndex == null ||
+        selections == null ||
+        populatePlayerIndex < 0 ||
+        populatePlayerIndex >= widget.playerNames.length ||
+        widget.playerNames[populatePlayerIndex].trim().isEmpty) {
+      return;
+    }
+
+    for (final rule in _allRules) {
+      if ((selections[rule.name] ?? 0) > 0) {
+        _quantities[rule.name]![populatePlayerIndex] = 1;
+      }
+    }
+  }
+
+  void _rememberCurrentWinnerSelections() {
+    final index = widget.winnerIndex;
+
+    if (index < 0 || index >= widget.playerNames.length) {
+      return;
+    }
+
+    if (widget.playerNames[index].trim().isEmpty) {
+      return;
+    }
+
+    final remembered = <String, int>{};
+
+    for (final rule in _allRules) {
+      if ((_quantities[rule.name]?[index] ?? 0) > 0) {
+        remembered[rule.name] = 1;
+      }
+    }
+
+    _carryForwardSelections = remembered;
   }
 
   void _syncHeaderScroll() {
@@ -193,8 +258,46 @@ class ScoringTableState extends State<ScoringTable> {
     }
   }
 
+  /// Clears the current round's selections while preserving the complete
+  /// winner selection for the next winner.
+  void prepareNextRound() {
+    clearAll();
+  }
+
+  /// Clears the visible selections while preserving the most recent
+  /// winner's complete selection so it can be reused by the next winner.
+  ///
+  /// This method is also called by ScoreScreen after SAVE ROUND and when
+  /// the winner changes. In both cases the previous winner's Base Point
+  /// and Mahjong outcome are carried forward automatically.
   void clearAll() {
-    setState(_initialize);
+    if (_pendingWinnerIndex != null) {
+      final targetIndex = _pendingWinnerIndex!;
+      final selections = Map<String, int>.from(_carryForwardSelections);
+      _pendingWinnerIndex = null;
+
+      setState(() {
+        _initialize(
+          populatePlayerIndex: targetIndex,
+          selections: selections,
+        );
+      });
+    } else {
+      // SAVE ROUND calls clearAll() while the current winner is still
+      // selected. Capture that winner's selections before clearing them.
+      _rememberCurrentWinnerSelections();
+
+      final targetIndex = widget.winnerIndex;
+      final selections = Map<String, int>.from(_carryForwardSelections);
+
+      setState(() {
+        _initialize(
+          populatePlayerIndex: targetIndex,
+          selections: selections,
+        );
+      });
+    }
+
     widget.onChanged(_quantities);
   }
 
@@ -211,6 +314,8 @@ class ScoringTableState extends State<ScoringTable> {
             ? ScoringRules.baseRules
             : ScoringRules.bonusRules;
 
+        // Only one Base Point pattern and only one Mahjong outcome
+        // may be selected for a winner.
         for (final other in group) {
           if (other.name != rule.name) {
             _quantities[other.name]![playerIndex] = 0;
@@ -228,9 +333,19 @@ class ScoringTableState extends State<ScoringTable> {
       return;
     }
 
-    if (widget.winnerIndex == index) return;
+    if (widget.winnerIndex == index) {
+      return;
+    }
 
-    clearAll();
+    // Capture the CURRENT winner's complete selection before the parent
+    // changes winnerIndex. This is the state that must be copied to the
+    // newly selected winner.
+    _rememberCurrentWinnerSelections();
+    _pendingWinnerIndex = index;
+
+    // Do not clear here. ScoreScreen changes winnerIndex and then calls
+    // clearAll(); clearAll() will apply _carryForwardSelections to the
+    // new winner.
     widget.onWinnerChanged(index);
   }
 
@@ -376,7 +491,6 @@ class ScoringTableState extends State<ScoringTable> {
         ),
       );
 
-  // The left half of the special-outcome background.
   Widget _specialOutcomeLeftBackground() {
     final top =
         _sectionTitleHeight +
@@ -391,7 +505,7 @@ class ScoringTableState extends State<ScoringTable> {
       child: IgnorePointer(
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.08),
+            color: Colors.grey.withValues(alpha: 0.25),
             border: Border(
               top: BorderSide(
                 color: Colors.grey.withValues(alpha: 0.25),
@@ -413,10 +527,6 @@ class ScoringTableState extends State<ScoringTable> {
     );
   }
 
-  // The right half of the special-outcome background.
-  //
-  // The background is intentionally 4 pixels narrower on the right.
-  // The actual player columns remain unchanged.
   Widget _specialOutcomeRightBackground() {
     final top =
         _sectionTitleHeight +
@@ -435,7 +545,7 @@ class ScoringTableState extends State<ScoringTable> {
       child: IgnorePointer(
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.08),
+            color: Colors.grey.withValues(alpha: 0.25),
             border: Border(
               top: BorderSide(
                 color: Colors.grey.withValues(alpha: 0.25),
@@ -491,14 +601,6 @@ class ScoringTableState extends State<ScoringTable> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Honor: Winds and Dragons',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
                     ),
                   ),
                 ],
