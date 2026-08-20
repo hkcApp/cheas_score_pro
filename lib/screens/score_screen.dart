@@ -273,6 +273,25 @@ class _ScoreScreenState extends State<ScoreScreen> {
       );
     }
 
+    /*
+     * The scoring table itself is unchanged.
+     *
+     * On phones the bottom action buttons were consuming enough
+     * vertical space to cover the final "Discarded Chip Mahjong"
+     * row.  Only the surrounding spacing and button height are
+     * reduced on narrow screens.
+     *
+     * Desktop keeps the original dimensions.
+     */
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isPhone = screenWidth < 600;
+
+    final topSpacerHeight = isPhone ? 0.0 : 4.0;
+    final dividerHeight = isPhone ? 4.0 : 8.0;
+    final buttonTopPadding = isPhone ? 4.0 : 8.0;
+    final buttonBottomPadding = isPhone ? 4.0 : 12.0;
+    final buttonHeight = isPhone ? 36.0 : 46.0;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -281,8 +300,14 @@ class _ScoreScreenState extends State<ScoreScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 4),
-          const Divider(height: 8),
+          SizedBox(
+            height: topSpacerHeight,
+          ),
+
+          Divider(
+            height: dividerHeight,
+          ),
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -344,12 +369,20 @@ class _ScoreScreenState extends State<ScoreScreen> {
               ),
             ),
           ),
+
+          /*
+           * Bottom action buttons.
+           *
+           * Desktop: exactly the existing 46px button height.
+           * Phone: 36px buttons and reduced surrounding padding,
+           * freeing enough vertical space for the final scoring row.
+           */
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               12,
-              8,
+              buttonTopPadding,
               12,
-              12,
+              buttonBottomPadding,
             ),
             child: Align(
               alignment: Alignment.centerLeft,
@@ -361,7 +394,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
                   children: [
                     SizedBox(
                       width: 80,
-                      height: 46,
+                      height: buttonHeight,
                       child: ElevatedButton(
                         onPressed: _undoLastRound,
                         style: ElevatedButton.styleFrom(
@@ -379,9 +412,10 @@ class _ScoreScreenState extends State<ScoreScreen> {
                         ),
                       ),
                     ),
+
                     SizedBox(
                       width: 80,
-                      height: 46,
+                      height: buttonHeight,
                       child: OutlinedButton(
                         onPressed: _resetDefaultPoints,
                         style: OutlinedButton.styleFrom(
@@ -398,9 +432,10 @@ class _ScoreScreenState extends State<ScoreScreen> {
                         ),
                       ),
                     ),
+
                     SizedBox(
                       width: 120,
-                      height: 46,
+                      height: buttonHeight,
                       child: ElevatedButton(
                         onPressed: _saveRound,
                         style: ElevatedButton.styleFrom(
