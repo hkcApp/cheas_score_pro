@@ -43,6 +43,7 @@ class ScoringTableState extends State<ScoringTable> {
       _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 3);
 
   static const double _sectionTitleHeight = 24;
+  static const double _rowHeight = 38;
 
   // Visual-only settings for the special outcome box.
   static const double _specialBoxRightTrim = 4;
@@ -367,16 +368,21 @@ class ScoringTableState extends State<ScoringTable> {
       );
 
   Widget _leftRow(ScoringRule rule) {
-    final label = rule.name;
+    final label = rule.name == 'Self-draw Chip Mahjong'
+        ? 'Self-draw Chip'
+        : rule.name == 'Discarded Chip Mahjong'
+            ? 'Discarded Chip'
+            : rule.name;
 
-    final fontSize = label.length > 24
+    final fontSize = label.length > 20
         ? 10.0
-        : label.length > 18
+        : label.length > 12
             ? 12.0
             : 14.0;
 
     return SizedBox(
-      height: 34,
+
+      height: _rowHeight,
       child: Row(
         children: [
           SizedBox(
@@ -440,7 +446,7 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   Widget _rightRow(ScoringRule rule) => SizedBox(
-        height: 34,
+        height: _rowHeight,
         child: Row(
           children: List.generate(
             widget.playerNames.length,
@@ -494,14 +500,15 @@ class ScoringTableState extends State<ScoringTable> {
   Widget _specialOutcomeLeftBackground() {
     final top =
         _sectionTitleHeight +
-        (ScoringRules.baseRules.length * 34) +
+        (ScoringRules.baseRules.length * _rowHeight) +
         12;
 
     return Positioned(
       left: 0,
       top: top,
       width: _ruleNameWidth + _pointsWidth,
-      height: ScoringRules.bonusRules.length * 34,
+      height: _sectionTitleHeight +
+    (ScoringRules.bonusRules.length * _rowHeight),
       child: IgnorePointer(
         child: Container(
           decoration: BoxDecoration(
@@ -530,7 +537,7 @@ class ScoringTableState extends State<ScoringTable> {
   Widget _specialOutcomeRightBackground() {
     final top =
         _sectionTitleHeight +
-        (ScoringRules.baseRules.length * 34) +
+        (ScoringRules.baseRules.length * _rowHeight) +
         12;
 
     final width =
@@ -541,7 +548,8 @@ class ScoringTableState extends State<ScoringTable> {
       left: 0,
       top: top,
       width: width,
-      height: ScoringRules.bonusRules.length * 34,
+      height: _sectionTitleHeight +
+    (ScoringRules.bonusRules.length * _rowHeight),
       child: IgnorePointer(
         child: Container(
           decoration: BoxDecoration(
@@ -568,18 +576,20 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   List<Widget> _leftBody() => [
-        _sectionTitle('BASE POINTS'),
-        ...ScoringRules.baseRules.map(_leftRow),
-        const SizedBox(height: 12),
-        ...ScoringRules.bonusRules.map(_leftRow),
-      ];
+    _sectionTitle('BASE POINTS'),
+    ...ScoringRules.baseRules.map(_leftRow),
+    const SizedBox(height: 12),
+    _sectionTitle('MAHJONG OUTCOME'),
+    ...ScoringRules.bonusRules.map(_leftRow),
+  ];
 
   List<Widget> _rightBody() => [
-        const SizedBox(height: _sectionTitleHeight),
-        ...ScoringRules.baseRules.map(_rightRow),
-        const SizedBox(height: 12),
-        ...ScoringRules.bonusRules.map(_rightRow),
-      ];
+    const SizedBox(height: _sectionTitleHeight),
+    ...ScoringRules.baseRules.map(_rightRow),
+    const SizedBox(height: 12),
+    const SizedBox(height: _sectionTitleHeight),
+    ...ScoringRules.bonusRules.map(_rightRow),
+  ];
 
   @override
   Widget build(BuildContext context) {
