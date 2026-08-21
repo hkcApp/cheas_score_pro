@@ -42,8 +42,8 @@ class ScoringTableState extends State<ScoringTable> {
   static const double titleGridWidth =
       _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 3);
 
-  static const double _sectionTitleHeight = 24;
-  static const double _rowHeight = 34;
+  static const double _sectionTitleHeight = 34;
+  static const double _rowHeight = 30;
 
   // Visual-only settings for the special outcome box.
   static const double _specialBoxRightTrim = 4;
