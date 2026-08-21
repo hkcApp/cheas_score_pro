@@ -43,7 +43,7 @@ class ScoringTableState extends State<ScoringTable> {
       _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 3);
 
   static const double _sectionTitleHeight = 24;
-  static const double _rowHeight = 38;
+  static const double _rowHeight = 34;
 
   // Visual-only settings for the special outcome box.
   static const double _specialBoxRightTrim = 4;
@@ -578,7 +578,7 @@ class ScoringTableState extends State<ScoringTable> {
   List<Widget> _leftBody() => [
     _sectionTitle('BASE POINTS'),
     ...ScoringRules.baseRules.map(_leftRow),
-    const SizedBox(height: 12),
+    const SizedBox(height: 6),
     _sectionTitle('MAHJONG OUTCOME'),
     ...ScoringRules.bonusRules.map(_leftRow),
   ];
@@ -586,7 +586,7 @@ class ScoringTableState extends State<ScoringTable> {
   List<Widget> _rightBody() => [
     const SizedBox(height: _sectionTitleHeight),
     ...ScoringRules.baseRules.map(_rightRow),
-    const SizedBox(height: 12),
+    const SizedBox(height: 6),
     const SizedBox(height: _sectionTitleHeight),
     ...ScoringRules.bonusRules.map(_rightRow),
   ];
