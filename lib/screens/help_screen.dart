@@ -10,10 +10,10 @@ class HelpScreen extends StatefulWidget {
 }
 
 class _HelpScreenState extends State<HelpScreen> {
-  static const double _patternWidth = 120;
+  static const double _patternWidth = 115;
   static const double _pointsWidth = 55;
-  static const double _detailWidth = 165;
-  static const double _exampleWidth = 420;
+  static const double _detailWidth = 250;
+  static const double _exampleWidth = 300;
 
   double _horizontalOffset = 0;
 
@@ -549,19 +549,46 @@ Widget _quickReferenceLine(List<TextSpan> children) {
                     children: [
                       SizedBox(
                         width: _pointsWidth,
-                        child: _headerCell(
-                          'Points',
-                          alignment: TextAlign.center,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 0.6,
+                            ),
+                          ),
+                          child: _headerCell(
+                            'Points',
+                            alignment: TextAlign.center,
+                          ),
                         ),
                       ),
                       SizedBox(
                         width: _detailWidth,
-                        child: _headerCell('Detail'),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 0.6,
+                            ),
+                          ),
+                          child: _headerCell('Detail'),
+                        ),
                       ),
                       SizedBox(
                         width: _exampleWidth,
-                        child: _headerCell(
-                          'Complete Hand Example',
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 0.6,
+                            ),
+                          ),
+                          child: _headerCell(
+                            'Complete Hand Example',
+                          ),
                         ),
                       ),
                     ],
@@ -628,29 +655,71 @@ Widget _quickReferenceLine(List<TextSpan> children) {
                     children: [
                       SizedBox(
                         width: _pointsWidth,
-                        child: _bodyCell(
-                          Text(
-                            '${rule.points}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black87,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
+                              bottom: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
                             ),
                           ),
-                          alignment: Alignment.topCenter,
+                          child: _bodyCell(
+                            Text(
+                              '${rule.points}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            alignment: Alignment.topCenter,
+                          ),
                         ),
                       ),
                       SizedBox(
                         width: _detailWidth,
-                        child: _bodyCell(
-                          _detailCell(rule),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
+                              bottom: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
+                            ),
+                          ),
+                          child: _bodyCell(
+                            _detailCell(rule),
+                          ),
                         ),
                       ),
                       SizedBox(
                         width: _exampleWidth,
-                        child: _bodyCell(
-                          _exampleText(
-                            _completeExample(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
+                              bottom: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 0.6,
+                              ),
+                            ),
+                          ),
+                          child: _bodyCell(
+                            _exampleText(
+                              _completeExample(index),
+                            ),
                           ),
                         ),
                       ),
@@ -664,6 +733,8 @@ Widget _quickReferenceLine(List<TextSpan> children) {
       ),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {

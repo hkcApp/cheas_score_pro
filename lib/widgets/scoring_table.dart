@@ -374,11 +374,16 @@ class ScoringTableState extends State<ScoringTable> {
             ? 'Discarded Chip'
             : rule.name;
 
-    final fontSize = label.length > 20
+    final fontSize = label == '3 set of Pungs/Kongs' ||
+        label == '4 set of Pungs/Kongs' ||
+        label == '3 set of Honor Pungs/Kongs' ||
+        label == '4 set of Honor Pungs/Kongs'
         ? 10.0
-        : label.length > 12
-            ? 12.0
-            : 14.0;
+        : label.length > 20
+            ? 10.0
+            : label.length > 12
+                ? 12.0
+                : 14.0;
 
     return SizedBox(
 
