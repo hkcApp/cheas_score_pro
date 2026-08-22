@@ -13,7 +13,7 @@ class _HelpScreenState extends State<HelpScreen> {
   static const double _patternWidth = 115;
   static const double _pointsWidth = 55;
   static const double _detailWidth = 250;
-  static const double _exampleWidth = 300;
+  static const double _exampleWidth = 250;
 
   double _horizontalOffset = 0;
 
