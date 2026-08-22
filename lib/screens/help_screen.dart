@@ -10,6 +10,13 @@ class HelpScreen extends StatefulWidget {
 }
 
 class _HelpScreenState extends State<HelpScreen> {
+  static const double _patternWidth = 120;
+  static const double _pointsWidth = 55;
+  static const double _detailWidth = 165;
+  static const double _exampleWidth = 420;
+
+  double _horizontalOffset = 0;
+
   // Mahjong tile colors.
   static const Color dotColor = Color(0xFF1565C0);
   static const Color bamColor = Color(0xFF2E7D32);
@@ -77,7 +84,13 @@ class _HelpScreenState extends State<HelpScreen> {
     return spans;
   }
 
-  Widget _quickReferenceLine(List<TextSpan> children) {
+Widget _quickReferenceLine(List<TextSpan> children) {
+  if (children.isEmpty) return const SizedBox.shrink();
+
+  final first = children.first;
+  final firstText = first.text ?? '';
+
+  if (!firstText.startsWith('• ')) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: RichText(
@@ -92,6 +105,52 @@ class _HelpScreenState extends State<HelpScreen> {
       ),
     );
   }
+
+  final remainingFirst = TextSpan(
+    text: firstText.substring(2),
+    style: first.style,
+    recognizer: first.recognizer,
+    mouseCursor: first.mouseCursor,
+    onEnter: first.onEnter,
+    onExit: first.onExit,
+  );
+
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 2),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          width: 12,
+          child: Text(
+            '•',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        Expanded(
+          child: RichText(
+            softWrap: true,
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 11.5,
+                color: Colors.black87,
+              ),
+              children: [
+                remainingFirst,
+                ...children.skip(1),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
 
   TextSpan _normalSpan(String text) {
     return TextSpan(
@@ -120,8 +179,7 @@ class _HelpScreenState extends State<HelpScreen> {
   Widget _quickReference() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(6, 8, 6, 10),
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 7),
+      margin: const EdgeInsets.fromLTRB(6, 4, 6, 6),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         border: Border.all(
@@ -130,82 +188,87 @@ class _HelpScreenState extends State<HelpScreen> {
         ),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+          childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+          dense: true,
+          visualDensity: const VisualDensity(vertical: -3),
+          title: const Text(
             'Quick Reference',
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 5),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Honor Tile — A tile that is not a numbered suit tile. '
-              'Honor tiles are Winds and Dragons.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan('• Wind — '),
-            _tileSpan('東'),
-            _normalSpan(' East, '),
-            _tileSpan('南'),
-            _normalSpan(' South, '),
-            _tileSpan('西'),
-            _normalSpan(' West, '),
-            _tileSpan('北'),
-            _normalSpan(
-              ' North. Winds are Honor tiles and cannot form a Chow.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan('• Dragon — '),
-            _tileSpan('中'),
-            _normalSpan(' Red Dragon, '),
-            _tileSpan('發'),
-            _normalSpan(' Green Dragon, '),
-            _tileSpan('白'),
-            _normalSpan(
-              ' White Dragon. Dragons are Honor tiles and cannot form a Chow.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Chow — Three consecutive numbered tiles in the same suit, '
-              'such as 2-3-4. Honor tiles cannot be used.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Pung — Three identical tiles, such as 7-7-7 or ',
-            ),
-            _tileSpan('中 中 中'),
-            _normalSpan('.'),
-          ]),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Kong — Four identical tiles. A Kong is one meld but '
-              'contains four physical tiles.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Pair — Two identical tiles. A standard winning hand needs one pair.',
-            ),
-          ]),
-          _quickReferenceLine([
-            _normalSpan(
-              '• Winning Hand — Normally four melds plus one pair. '
-              'A Kong counts as one meld.',
-            ),
-          ]),
-        ],
+          children: [
+            _quickReferenceLine([
+              _normalSpan(
+                '• Honor Tile — A tile that is not a numbered suit tile. '
+                'Honor tiles are Winds and Dragons.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan('• Wind — '),
+              _tileSpan('東'),
+              _normalSpan(' East, '),
+              _tileSpan('南'),
+              _normalSpan(' South, '),
+              _tileSpan('西'),
+              _normalSpan(' West, '),
+              _tileSpan('北'),
+              _normalSpan(
+                ' North. Winds are Honor tiles and cannot form a Chow.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan('• Dragon — '),
+              _tileSpan('中'),
+              _normalSpan(' Red Dragon, '),
+              _tileSpan('發'),
+              _normalSpan(' Green Dragon, '),
+              _tileSpan('白'),
+              _normalSpan(
+                ' White Dragon. Dragons are Honor tiles and cannot form a Chow.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Chow — Three consecutive numbered tiles in the same suit, '
+                'such as 2-3-4. Honor tiles cannot be used.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan('• Pung — Three identical tiles, such as 7-7-7 or '),
+              _tileSpan('中 中 中'),
+              _normalSpan('.'),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Kong — Four identical tiles. A Kong is one meld but '
+                'contains four physical tiles.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Pair — Two identical tiles. A standard winning hand needs one pair.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Winning Hand — Normally four melds plus one pair. '
+                'A Kong counts as one meld.',
+              ),
+            ]),
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _sectionTitle(String text) {
     return Padding(
@@ -227,15 +290,15 @@ class _HelpScreenState extends State<HelpScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 3,
-        vertical: 6,
+        horizontal: 4,
+        vertical: 7,
       ),
       child: Text(
         text,
         textAlign: alignment,
         softWrap: false,
         style: const TextStyle(
-          fontSize: 11.5,
+          fontSize: 12.5,
           fontWeight: FontWeight.bold,
           color: Colors.black87,
         ),
@@ -250,33 +313,10 @@ class _HelpScreenState extends State<HelpScreen> {
     return Container(
       alignment: alignment,
       padding: const EdgeInsets.symmetric(
-        horizontal: 3,
-        vertical: 6,
+        horizontal: 4,
+        vertical: 7,
       ),
       child: child,
-    );
-  }
-
-  TableRow _headerRow() {
-    return TableRow(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade400,
-            width: 1,
-          ),
-        ),
-      ),
-      children: [
-        _headerCell('Pattern'),
-        _headerCell(
-          'Points',
-          alignment: TextAlign.center,
-        ),
-        _headerCell('Detail'),
-        _headerCell('Complete Hand Example'),
-      ],
     );
   }
 
@@ -284,12 +324,27 @@ class _HelpScreenState extends State<HelpScreen> {
     int index,
     ScoringRule rule,
   ) {
+    const patternNames = [
+      'Chow',
+      'Double Sequence',
+      'Pure Triple Chow',
+      'Mixed One Suit',
+      '3 set of Pungs/Kongs',
+      '4 set of Pungs/Kongs',
+      'Pure Straight',
+      'Full Flush (1 Suit)',
+      '3 set of Honor Pungs/Kongs',
+      'Seven Pairs',
+      '4 set of Honor Pungs/Kongs',
+      'Nine Gates',
+    ];
+
     return Text(
-      '${index + 1}. ${rule.name}',
+      patternNames[index],
       softWrap: true,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: 11.5,
+        fontSize: 13,
         color: Colors.black87,
       ),
     );
@@ -300,7 +355,7 @@ class _HelpScreenState extends State<HelpScreen> {
       rule.description ?? '',
       softWrap: true,
       style: const TextStyle(
-        fontSize: 11.5,
+        fontSize: 13,
         fontWeight: FontWeight.normal,
         color: Colors.black87,
       ),
@@ -317,12 +372,12 @@ class _HelpScreenState extends State<HelpScreen> {
           for (var i = 0; i < lines.length; i++) ...[
             ..._coloredText(
               lines[i],
-              fontSize: 11.5,
+              fontSize: 13,
             ),
             if (i < lines.length - 1)
               const TextSpan(
                 text: '\n',
-                style: TextStyle(fontSize: 11.5),
+                style: TextStyle(fontSize: 13),
               ),
           ],
         ],
@@ -427,43 +482,186 @@ class _HelpScreenState extends State<HelpScreen> {
     }
   }
 
-  TableRow _ruleRow(
-    int index,
-    ScoringRule rule,
+
+  void _handleHorizontalDragUpdate(
+    DragUpdateDetails details,
+    double viewportWidth,
   ) {
-    return TableRow(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade300,
-            width: 0.7,
-          ),
-        ),
-      ),
-      children: [
-        _bodyCell(
-          _patternCell(index, rule),
-        ),
-        _bodyCell(
-          Text(
-            '${rule.points}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 11.5,
-              color: Colors.black87,
+    final totalScrollableWidth =
+        _pointsWidth + _detailWidth + _exampleWidth;
+    final maxOffset =
+        (totalScrollableWidth - viewportWidth).clamp(0.0, double.infinity);
+
+    setState(() {
+      _horizontalOffset = (_horizontalOffset - details.delta.dx).clamp(
+        0.0,
+        maxOffset,
+      );
+    });
+  }
+
+  Widget _scrollableRuleHeader(double viewportWidth) {
+    final contentWidth =
+        _pointsWidth + _detailWidth + _exampleWidth;
+
+    return SizedBox(
+      height: 43,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: _patternWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 0.6,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 7,
+              ),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Pattern',
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           ),
-          alignment: Alignment.topCenter,
-        ),
-        _bodyCell(
-          _detailCell(rule),
-        ),
-        _bodyCell(
-          _exampleText(
-            _completeExample(index),
+          SizedBox(
+            width: viewportWidth,
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                minWidth: contentWidth,
+                maxWidth: contentWidth,
+                child: Transform.translate(
+                  offset: Offset(-_horizontalOffset, 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: _pointsWidth,
+                        child: _headerCell(
+                          'Points',
+                          alignment: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(
+                        width: _detailWidth,
+                        child: _headerCell('Detail'),
+                      ),
+                      SizedBox(
+                        width: _exampleWidth,
+                        child: _headerCell(
+                          'Complete Hand Example',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _scrollableRuleRow(
+    int index,
+    ScoringRule rule,
+    double viewportWidth,
+  ) {
+    final contentWidth =
+        _pointsWidth + _detailWidth + _exampleWidth;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: _patternWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: Colors.grey.shade300,
+                    width: 0.6,
+                  ),
+                  right: BorderSide(
+                    color: Colors.grey.shade300,
+                    width: 0.6,
+                  ),
+                  bottom: BorderSide(
+                    color: Colors.grey.shade300,
+                    width: 0.6,
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 7,
+              ),
+              alignment: Alignment.topLeft,
+              child: _patternCell(index, rule),
+            ),
+          ),
+          SizedBox(
+            width: viewportWidth,
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                minWidth: contentWidth,
+                maxWidth: contentWidth,
+                child: Transform.translate(
+                  offset: Offset(-_horizontalOffset, 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: _pointsWidth,
+                        child: _bodyCell(
+                          Text(
+                            '${rule.points}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          alignment: Alignment.topCenter,
+                        ),
+                      ),
+                      SizedBox(
+                        width: _detailWidth,
+                        child: _bodyCell(
+                          _detailCell(rule),
+                        ),
+                      ),
+                      SizedBox(
+                        width: _exampleWidth,
+                        child: _bodyCell(
+                          _exampleText(
+                            _completeExample(index),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -485,43 +683,40 @@ class _HelpScreenState extends State<HelpScreen> {
             ),
 
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  6,
-                  0,
-                  6,
-                  12,
-                ),
-                child: Table(
-                  columnWidths: const {
-                    // Pattern — reduced approximately 30%.
-                    0: FlexColumnWidth(0.74),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final viewportWidth =
+                        (constraints.maxWidth - _patternWidth)
+                            .clamp(0.0, double.infinity);
 
-                    // Points — compact.
-                    1: FlexColumnWidth(0.45),
-
-                    // Detail — unchanged.
-                    2: FlexColumnWidth(1.80),
-
-                    // Complete Hand Example — increased approximately 20%.
-                    3: FlexColumnWidth(3.06),
-                  },
-                  border: TableBorder.all(
-                    color: Colors.grey.shade300,
-                    width: 0.6,
-                  ),
-                  children: [
-                    _headerRow(),
-                    for (
-                      var index = 0;
-                      index < rules.length;
-                      index++
-                    )
-                      _ruleRow(
-                        index,
-                        rules[index],
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onHorizontalDragUpdate: (details) =>
+                          _handleHorizontalDragUpdate(
+                        details,
+                        viewportWidth,
                       ),
-                  ],
+                      child: Column(
+                        children: [
+                          _scrollableRuleHeader(viewportWidth),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: rules.length,
+                              itemBuilder: (context, index) {
+                                return _scrollableRuleRow(
+                                  index,
+                                  rules[index],
+                                  viewportWidth,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

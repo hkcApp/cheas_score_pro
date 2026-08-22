@@ -64,7 +64,7 @@ class ScoringRules {
     ),
 
     ScoringRule(
-      name: '3 Pungs/Kongs',
+      name: '3 set of Pungs/Kongs',
       points: 3,
       type: ScoringType.base,
       description:
@@ -76,7 +76,7 @@ class ScoringRules {
     ),
 
     ScoringRule(
-      name: '4 Pungs/Kongs',
+      name: '4 set of Pungs/Kongs',
       points: 4,
       type: ScoringType.base,
       description:
@@ -109,7 +109,7 @@ class ScoringRules {
     ),
 
     ScoringRule(
-      name: '3 Honor Pungs/Kongs',
+      name: '3 set of Honor Pungs/Kongs',
       points: 6,
       type: ScoringType.base,
       description:
@@ -131,7 +131,7 @@ class ScoringRules {
     ),
 
     ScoringRule(
-      name: '4 Honors Pungs/Kongs',
+      name: '4 set of Honor Pungs/Kongs',
       points: 7,
       type: ScoringType.base,
       description:
