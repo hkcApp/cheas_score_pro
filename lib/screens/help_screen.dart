@@ -378,7 +378,7 @@ class _HelpScreenState extends State<HelpScreen> {
             'four-melds-plus-pair structure.';
 
       case 10:
-        return 'Nine Gate uses one numbered suit only.\n'
+        return 'Nine Gates uses one numbered suit only.\n'
             'Base structure: 1-1-1-2-3-4-5-6-7-8-9-9-9 筒\n'
             'Additional tile: 5 筒\n'
             'Complete hand: 1-1-1-2-3-4-5-5-6-7-8-9-9-9 筒\n'

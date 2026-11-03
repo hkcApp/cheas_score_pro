@@ -37,9 +37,9 @@ void main() {
     );
 
     expect(find.text('BASE POINTS'), findsOneWidget);
-    expect(find.text('Nine Gate'), findsOneWidget);
+    expect(find.text('Nine Gates'), findsOneWidget);
     expect(find.text('Pung'), findsOneWidget);
-    expect(find.byTooltip('Three identical numbered tiles.'), findsOneWidget);
+    expect(find.byTooltip('Three identical numbered tiles.'), findsNothing);
     expect(find.text('Self-draw Chip'), findsOneWidget);
     expect(find.byType(Checkbox), findsNWidgets(28));
     expect(find.byType(QuantityControl), findsNWidgets(24));
@@ -51,8 +51,74 @@ void main() {
     await mouse.addPointer(location: titleCenter);
     await mouse.moveTo(titleCenter);
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Three identical numbered tiles.'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    final baseTitleCenter = tester.getCenter(find.text('BASE POINTS'));
+    await mouse.moveTo(baseTitleCenter);
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      find.text(
+        'Select the patterns that apply to the winning hand. '
+        'Their points are multiplied by the selected quantities.',
+      ),
+      findsNothing,
+    );
     await mouse.removePointer();
+
+    await tester.tap(find.text('BASE POINTS'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    final dialogCard = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(Material),
+    );
+    expect(tester.getSize(dialogCard.first).width, 308);
+    expect(
+      find.text(
+        'Select the patterns that apply to the winning hand. '
+        'Their points are multiplied by the selected quantities.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+
+    Future<void> tapRuleAndClose(String label, String description) async {
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text(description), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+    }
+
+    await tapRuleAndClose('Pung', 'Three identical numbered tiles.');
+    await tapRuleAndClose(
+      'Nine Gates',
+      'A concealed hand in one numbered suit: 1112345678999 '
+          'plus one additional tile of that suit.',
+    );
+    await tapRuleAndClose(
+      'Self-draw Chip',
+      'Each other active player pays 5 points.',
+    );
+    await tapRuleAndClose(
+      'Discarded Chip',
+      'Each opponent pays 5 × (4 active players − 1) = 15 points.',
+    );
+
+    await tester.tap(find.text('MAHJONG OUTCOME'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      find.text(
+        'Choose how Mahjong was won: self-draw or from another player’s discard. '
+        'The bonus is added to the winner’s score and paid by the other '
+        'active players.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
 
     expect(tester.widget<QuantityControl>(selectors.at(0)).maxValue, 4);
     expect(tester.widget<QuantityControl>(selectors.at(20)).maxValue, 2);
@@ -73,7 +139,7 @@ void main() {
           )
           .style
           ?.fontSize,
-      14,
+      16,
     );
     final inactiveColumn = find.ancestor(
       of: selectors.at(1),
@@ -224,7 +290,7 @@ void main() {
 
     await tester.tap(find.byType(Checkbox).at(16));
     await tester.pumpAndSettle();
-    expect(quantities['Nine Gate']![0], 1);
+    expect(quantities['Nine Gates']![0], 1);
     for (final index in [8, 12]) {
       expect(
         tester.widget<Checkbox>(find.byType(Checkbox).at(index)).onChanged,
@@ -235,7 +301,7 @@ void main() {
       tester.widget<Checkbox>(find.byType(Checkbox).at(20)).onChanged,
       isNotNull,
     );
-    expect(quantities['Nine Gate']![0], 1);
+    expect(quantities['Nine Gates']![0], 1);
     expect(quantities['Self-draw Chip Mahjong']![0], 1);
     await tester.tap(find.byType(Checkbox).at(16));
     await tester.pumpAndSettle();

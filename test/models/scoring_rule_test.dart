@@ -20,7 +20,7 @@ void main() {
         'Pure Straight',
         'Full Flush',
         'Seven Pairs',
-        'Nine Gate',
+        'Nine Gates',
       ]);
 
       expect(ScoringRules.baseRules.skip(1).take(4).map((rule) => rule.name), [
@@ -40,13 +40,13 @@ void main() {
       expect(points, containsPair('Pung', 2));
       expect(points, containsPair('Kong', 3));
       expect(points, containsPair('Honor Pung', 4));
-      expect(points, containsPair('Honor Kong', 6));
-      expect(points, containsPair('Double Sequence', 8));
-      expect(points, containsPair('Pure Triple Chow', 18));
-      expect(points, containsPair('Pure Straight', 18));
-      expect(points, containsPair('Full Flush', 18));
-      expect(points, containsPair('Seven Pairs', 20));
-      expect(points, containsPair('Nine Gate', 20));
+      expect(points, containsPair('Honor Kong', 5));
+      expect(points, containsPair('Double Sequence', 14));
+      expect(points, containsPair('Pure Triple Chow', 21));
+      expect(points, containsPair('Pure Straight', 21));
+      expect(points, containsPair('Full Flush', 30));
+      expect(points, containsPair('Seven Pairs', 30));
+      expect(points, containsPair('Nine Gates', 38));
     },
   );
 

@@ -23,19 +23,22 @@ class ScoringValueService {
     'Pong': 'Pung',
     'Pong (Wind/Dragon)': 'Honor Pung',
     'Full Flush (1 Suit)': 'Full Flush',
-    'Nine Gates': 'Nine Gate',
+    'Nine Gate': 'Nine Gates',
   };
 
   /// Previously shipped defaults are reset to the current defaults, while
   /// custom values continue to carry forward.
   static const Map<String, Set<int>> _previousDefaultPoints = {
     'Chow': {1, 2},
-    'Double Sequence': {2},
-    'Pure Triple Chow': {3},
-    'Pure Straight': {4},
+    'Honor Kong': {6},
+    'Double Sequence': {2, 8},
+    'Pure Triple Chow': {3, 18},
+    'Pure Straight': {4, 18},
     'Full Flush (1 Suit)': {5},
-    'Seven Pairs': {6},
-    'Nine Gates': {10},
+    'Full Flush': {18},
+    'Seven Pairs': {6, 20},
+    'Nine Gates': {10, 20},
+    'Nine Gate': {20},
     'Pong': {4},
     'Pong (Wind/Dragon)': {5},
   };

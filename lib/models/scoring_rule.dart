@@ -18,7 +18,6 @@ class ScoringRule {
   final String? example;
   final int maxQuantity;
   final bool countsTowardCombinationLimit;
-
 }
 
 class ScoringRules {
@@ -65,7 +64,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Honor Kong',
-      points: 6,
+      points: 5,
       type: ScoringType.base,
       maxQuantity: 4,
       countsTowardCombinationLimit: true,
@@ -75,7 +74,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Double Sequence',
-      points: 8,
+      points: 14,
       type: ScoringType.base,
       maxQuantity: 2,
       countsTowardCombinationLimit: true,
@@ -86,7 +85,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Pure Triple Chow',
-      points: 18,
+      points: 21,
       type: ScoringType.base,
       countsTowardCombinationLimit: true,
       description: 'Three identical Chows in three different suits.',
@@ -94,7 +93,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Pure Straight',
-      points: 18,
+      points: 21,
       type: ScoringType.base,
       countsTowardCombinationLimit: true,
       description:
@@ -103,7 +102,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Full Flush',
-      points: 18,
+      points: 30,
       type: ScoringType.base,
       description:
           'Every tile in the hand is from the same numbered suit. '
@@ -112,15 +111,15 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Seven Pairs',
-      points: 20,
+      points: 30,
       type: ScoringType.base,
       description:
           'A winning hand made from seven separate pairs of identical tiles.',
       example: 'Seven pairs (14 tiles)',
     ),
     ScoringRule(
-      name: 'Nine Gate',
-      points: 20,
+      name: 'Nine Gates',
+      points: 38,
       type: ScoringType.base,
       description:
           'A concealed hand in one numbered suit: 1112345678999 '

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -45,6 +47,8 @@ class ScoringTableState extends State<ScoringTable> {
 
   static const double _sectionTitleHeight = 34;
   static const double _rowHeight = 32;
+  static const double _descriptionDialogWidth =
+      _ruleNameWidth + _pointsWidth + (_playerColumnWidth * 2);
 
   // Visual-only settings for the special outcome box.
   static const double _specialBoxRightTrim = 4;
@@ -192,7 +196,7 @@ class ScoringTableState extends State<ScoringTable> {
   static const Set<String> _standalonePatternNames = {
     'Full Flush',
     'Seven Pairs',
-    'Nine Gate',
+    'Nine Gates',
   };
 
   bool _isStandalonePattern(ScoringRule rule) =>
@@ -414,16 +418,65 @@ class ScoringTableState extends State<ScoringTable> {
     widget.onWinnerChanged(index);
   }
 
-  Widget _sectionTitle(String title) => Container(
+  Widget _sectionTitle(String title, String description) => SizedBox(
     height: _sectionTitleHeight,
     width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-    alignment: Alignment.centerLeft,
-    child: Text(
-      title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showDescription(title, description),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ),
     ),
   );
+
+  Future<void> _showDescription(String title, String description) =>
+      showDialog<void>(
+        context: context,
+        builder: (context) {
+          final availableWidth = MediaQuery.sizeOf(context).width - 32;
+          final dialogWidth = math.min(_descriptionDialogWidth, availableWidth);
+          return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
+            ),
+            constraints: BoxConstraints(maxWidth: dialogWidth),
+            title: Text(title),
+            content: SizedBox(width: dialogWidth, child: Text(description)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+
+  String _descriptionForRule(ScoringRule rule) {
+    if (rule.name != 'Discarded Chip Mahjong') {
+      return rule.description ?? rule.name;
+    }
+
+    final activePlayerCount = widget.playerNames
+        .where((name) => name.trim().isNotEmpty)
+        .length;
+    return 'Each opponent pays ${rule.points} × '
+        '($activePlayerCount active players − 1) '
+        '= ${_displayedBonusPoints(rule)} points.';
+  }
 
   Widget _leftRow(ScoringRule rule) {
     final label = rule.name == 'Self-draw Chip Mahjong'
@@ -444,18 +497,21 @@ class ScoringTableState extends State<ScoringTable> {
         children: [
           SizedBox(
             width: _ruleNameWidth,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Tooltip(
-                message: rule.description ?? rule.name,
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w500,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showDescription(label, _descriptionForRule(rule)),
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    label,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
@@ -481,20 +537,20 @@ class ScoringTableState extends State<ScoringTable> {
                     ),
                   )
                 : Center(
-                    child: Tooltip(
-                      message: rule.name == 'Discarded Chip Mahjong'
-                          ? 'Each opponent pays ${rule.points} × '
-                                '(${widget.playerNames.where((name) => name.trim().isNotEmpty).length} active players − 1) '
-                                '= ${_displayedBonusPoints(rule)} points.'
-                          : rule.description ?? rule.name,
-                      child: Text(
-                        _displayedBonusValue(rule),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: rule.name == 'Self-draw Chip Mahjong'
-                              ? Colors.green[800]
-                              : Colors.red[800],
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () =>
+                            _showDescription(label, _descriptionForRule(rule)),
+                        child: Text(
+                          _displayedBonusValue(rule),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: rule.name == 'Self-draw Chip Mahjong'
+                                ? Colors.green[800]
+                                : Colors.red[800],
+                          ),
                         ),
                       ),
                     ),
@@ -657,10 +713,19 @@ class ScoringTableState extends State<ScoringTable> {
   }
 
   List<Widget> _leftBody() => [
-    _sectionTitle('BASE POINTS'),
+    _sectionTitle(
+      'BASE POINTS',
+      'Select the patterns that apply to the winning hand. '
+          'Their points are multiplied by the selected quantities.',
+    ),
     ...ScoringRules.baseRules.map(_leftRow),
     const SizedBox(height: 6),
-    _sectionTitle('MAHJONG OUTCOME'),
+    _sectionTitle(
+      'MAHJONG OUTCOME',
+      'Choose how Mahjong was won: self-draw or from another player’s discard. '
+          'The bonus is added to the winner’s score and paid by the other '
+          'active players.',
+    ),
     ...ScoringRules.bonusRules.map(_leftRow),
   ];
 

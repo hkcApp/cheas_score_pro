@@ -51,7 +51,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final game = GameService.instance.currentGame!;
-    expect(game.players[0].score, 19);
+    expect(game.players[0].score, 22);
     expect(game.transactions.last.baseQuantities['Chow']![0], 1);
     expect(game.transactions.last.baseQuantities['Double Sequence']![0], 0);
     expect(game.transactions.last.baseQuantities['Pure Triple Chow']![0], 1);
@@ -99,7 +99,6 @@ void main() {
     await tester.tap(find.text('1').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('5'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('outcome-self-draw-0')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('SAVE ROUND'));

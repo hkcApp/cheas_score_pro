@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.8
+
+- Updated default base-point values and migrated previously shipped defaults
+  while preserving customized scoring values.
+- Added tap-to-view descriptions for scoring categories, patterns, and Mahjong
+  outcomes, with dialogs sized for mobile screens.
+- Renamed Nine Gate to Nine Gates.
+
 ## 2.7.7
 
 - Corrected round scoring to calculate base points as quantity multiplied by

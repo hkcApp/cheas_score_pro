@@ -49,15 +49,20 @@ class QuantityControl extends StatelessWidget {
         onSelected: enabled ? onChanged : null,
         itemBuilder: (context) => List<PopupMenuEntry<int>>.generate(
           maxValue + 1,
-          (index) =>
-              PopupMenuItem<int>(value: index, child: Text(index.toString())),
+          (index) => PopupMenuItem<int>(
+            value: index,
+            child: Text(
+              index.toString(),
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
         ),
         child: compact
             ? Center(
                 child: Text(
                   value.toString(),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: enabled ? playerColor ?? Colors.black : Colors.grey,
                   ),
@@ -69,7 +74,7 @@ class QuantityControl extends StatelessWidget {
                   Text(
                     value.toString(),
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: enabled
                           ? playerColor ?? Colors.black
