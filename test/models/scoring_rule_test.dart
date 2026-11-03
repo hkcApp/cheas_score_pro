@@ -83,9 +83,9 @@ void main() {
   });
 
   test('keeps the two mutually exclusive Mahjong outcome chips', () {
-    expect(ScoringRules.bonusRules.map((rule) => rule.name), [
-      'Self-draw Chip Mahjong',
-      'Discarded Chip Mahjong',
+    expect(ScoringRules.bonusRules.map((rule) => (rule.name, rule.points)), [
+      ('Self-draw Chip Mahjong', 5),
+      ('Discarded Chip Mahjong', 5),
     ]);
   });
 }

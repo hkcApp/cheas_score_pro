@@ -2,7 +2,7 @@ name: chea_score_pro
 description: Chea's Mahjong Scoreboard
 publish_to: "none"
 
-version: 2.7.6+6
+version: 2.7.7+7
 
 environment:
   sdk: ^3.12.2
@@ -48,4 +48,3 @@ flutter:
   #   - family: YourFont
   #     fonts:
   #       - asset: assets/fonts/YourFont-Regular.ttf
-

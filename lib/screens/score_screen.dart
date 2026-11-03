@@ -128,19 +128,21 @@ class _ScoreScreenState extends State<ScoreScreen> {
     final activePlayerCount = game.players
         .where((player) => player.name.trim().isNotEmpty)
         .length;
-
     final loserCount = activePlayerCount - 1;
-
-    final multiplier = _hasOutcome('Discarded Chip Mahjong')
-        ? loserCount + 1
+    final bonusPointsPerLoser = _hasOutcome('Discarded Chip Mahjong')
+        ? ScoringRules.bonusRules.last.points * loserCount
         : _hasOutcome('Self-draw Chip Mahjong')
-        ? loserCount
-        : 1;
-
+        ? ScoringRules.bonusRules.first.points
+        : 0;
+    final winnerBonusPoints = _hasOutcome('Discarded Chip Mahjong')
+        ? bonusPointsPerLoser
+        : bonusPointsPerLoser * loserCount;
     final scores = <int, int>{
       for (var index = 0; index < game.players.length; index++)
         game.players[index].id: index == winnerIndex
-            ? basePoints * multiplier
+            ? basePoints + winnerBonusPoints
+            : game.players[index].name.trim().isNotEmpty
+            ? -bonusPointsPerLoser
             : 0,
     };
 

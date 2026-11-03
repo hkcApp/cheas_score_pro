@@ -201,6 +201,24 @@ class ScoringTableState extends State<ScoringTable> {
   int _quantityFor(String ruleName, int playerIndex) =>
       _quantities[ruleName]?[playerIndex] ?? 0;
 
+  int _displayedBonusPoints(ScoringRule rule) {
+    if (rule.name != 'Discarded Chip Mahjong') return rule.points;
+
+    final activePlayerCount = widget.playerNames
+        .where((name) => name.trim().isNotEmpty)
+        .length;
+    return activePlayerCount > 1 ? rule.points * (activePlayerCount - 1) : 0;
+  }
+
+  String _displayedBonusValue(ScoringRule rule) {
+    if (rule.name != 'Discarded Chip Mahjong') return '${rule.points}';
+
+    final activePlayerCount = widget.playerNames
+        .where((name) => name.trim().isNotEmpty)
+        .length;
+    return '${rule.points}x${activePlayerCount > 1 ? activePlayerCount - 1 : 0}';
+  }
+
   bool _hasStandalonePattern(int playerIndex) => ScoringRules.baseRules.any(
     (rule) =>
         _isStandalonePattern(rule) && _quantityFor(rule.name, playerIndex) > 0,
@@ -463,14 +481,21 @@ class ScoringTableState extends State<ScoringTable> {
                     ),
                   )
                 : Center(
-                    child: Text(
-                      rule.name == 'Self-draw Chip Mahjong' ? '摸' : '胡',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: rule.name == 'Self-draw Chip Mahjong'
-                            ? Colors.green[800]
-                            : Colors.red[800],
+                    child: Tooltip(
+                      message: rule.name == 'Discarded Chip Mahjong'
+                          ? 'Each opponent pays ${rule.points} × '
+                                '(${widget.playerNames.where((name) => name.trim().isNotEmpty).length} active players − 1) '
+                                '= ${_displayedBonusPoints(rule)} points.'
+                          : rule.description ?? rule.name,
+                      child: Text(
+                        _displayedBonusValue(rule),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: rule.name == 'Self-draw Chip Mahjong'
+                              ? Colors.green[800]
+                              : Colors.red[800],
+                        ),
                       ),
                     ),
                   ),
@@ -554,6 +579,11 @@ class ScoringTableState extends State<ScoringTable> {
                                         index,
                                         value ?? false,
                                       )
+                              : null,
+                          key: rule.name == 'Self-draw Chip Mahjong'
+                              ? ValueKey('outcome-self-draw-$index')
+                              : rule.name == 'Discarded Chip Mahjong'
+                              ? ValueKey('outcome-discarded-$index')
                               : null,
                         ),
                       ),

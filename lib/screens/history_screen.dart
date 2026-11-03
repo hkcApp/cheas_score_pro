@@ -31,6 +31,16 @@ class HistoryScreen extends StatelessWidget {
                 final winner = game.players.firstWhere(
                   (player) => player.id == transaction.winnerId,
                 );
+                final scoreChanges = transaction.playerDeltas.entries
+                    .where((entry) => entry.value != 0)
+                    .map((entry) {
+                      final player = game.players.firstWhere(
+                        (player) => player.id == entry.key,
+                      );
+                      final points = entry.value;
+                      return '${player.name}: ${points > 0 ? '+' : ''}$points';
+                    })
+                    .join(', ');
 
                 return Card(
                   child: ListTile(
@@ -38,6 +48,7 @@ class HistoryScreen extends StatelessWidget {
                     title: Text(winner.name),
                     subtitle: Text(
                       'Winner: ${winner.name}\n'
+                      'Score changes: $scoreChanges\n'
                       'Time: ${transaction.timestamp}',
                     ),
                     trailing: Text(

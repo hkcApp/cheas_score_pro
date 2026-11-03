@@ -132,13 +132,16 @@ class ScoringRules {
   static const List<ScoringRule> bonusRules = [
     ScoringRule(
       name: 'Self-draw Chip Mahjong',
-      points: 0,
+      points: 5,
       type: ScoringType.bonus,
+      description: 'Each other active player pays 5 points.',
     ),
     ScoringRule(
       name: 'Discarded Chip Mahjong',
-      points: 0,
+      points: 5,
       type: ScoringType.bonus,
+      description:
+          'Each other active player pays 5 points for each other active player.',
     ),
   ];
 }

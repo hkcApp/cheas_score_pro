@@ -79,4 +79,69 @@ void main() {
       );
     }
   });
+
+  testWidgets('self-draw transfers 5 points from each other active player', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await GameService.instance.startNewGame();
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('winner-selector-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(QuantityControl).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('5'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('outcome-self-draw-0')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('SAVE ROUND'));
+    await tester.tap(find.text('SAVE ROUND'));
+    await tester.pumpAndSettle();
+
+    final deltas =
+        GameService.instance.currentGame!.transactions.last.playerDeltas;
+    expect(deltas, {1: 16, 2: -5, 3: -5, 4: -5});
+    expect(deltas.values.reduce((total, delta) => total + delta), 1);
+  });
+
+  testWidgets(
+    'discarded-chip winner gets one 5x opponent-count bonus',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await GameService.instance.startNewGame();
+      tester.view.physicalSize = const Size(900, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('winner-selector-0')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(QuantityControl).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('5x3'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('outcome-discarded-0')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('SAVE ROUND'));
+      await tester.tap(find.text('SAVE ROUND'));
+      await tester.pumpAndSettle();
+
+      final deltas =
+          GameService.instance.currentGame!.transactions.last.playerDeltas;
+      expect(deltas, {1: 16, 2: -15, 3: -15, 4: -15});
+      expect(deltas.values.reduce((total, delta) => total + delta), -29);
+    },
+  );
 }
