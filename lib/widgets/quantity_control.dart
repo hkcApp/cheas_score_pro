@@ -8,6 +8,7 @@ class QuantityControl extends StatelessWidget {
     this.maxValue = 99,
     this.enabled = true,
     this.playerColor,
+    this.compact = false,
   });
 
   final int value;
@@ -21,17 +22,21 @@ class QuantityControl extends StatelessWidget {
   /// Optional player color theme.
   final Color? playerColor;
 
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final tintColor = playerColor ?? Colors.transparent;
+    final controlWidth = compact ? 24.0 : 80.0;
+    final controlHeight = compact ? 24.0 : 40.0;
 
     return Container(
-      width: 80,
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      width: controlWidth,
+      height: controlHeight,
+      padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 8),
       decoration: BoxDecoration(
         color: enabled ? tintColor.withValues(alpha: 0.12) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(compact ? 12 : 8),
         border: Border.all(
           color: enabled
               ? tintColor.withValues(alpha: 0.3)
@@ -47,24 +52,37 @@ class QuantityControl extends StatelessWidget {
           (index) =>
               PopupMenuItem<int>(value: index, child: Text(index.toString())),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              value.toString(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: enabled ? playerColor ?? Colors.black : Colors.grey,
+        child: compact
+            ? Center(
+                child: Text(
+                  value.toString(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: enabled ? playerColor ?? Colors.black : Colors.grey,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    value.toString(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: enabled
+                          ? playerColor ?? Colors.black
+                          : Colors.grey,
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: enabled ? playerColor ?? Colors.black : Colors.grey,
+                  ),
+                ],
               ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down,
-              size: 20,
-              color: enabled ? playerColor ?? Colors.black : Colors.grey,
-            ),
-          ],
-        ),
       ),
     );
   }

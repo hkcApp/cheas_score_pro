@@ -8,6 +8,7 @@ class PlayerHeader extends StatefulWidget {
   final String playerName;
   final int runningTotal;
   final bool isWinner;
+  final bool awaitingWinnerSelection;
   final String wind;
 
   final VoidCallback onWinnerTapped;
@@ -25,6 +26,7 @@ class PlayerHeader extends StatefulWidget {
     required this.playerName,
     required this.runningTotal,
     required this.isWinner,
+    this.awaitingWinnerSelection = false,
     required this.wind,
     required this.onWinnerTapped,
     required this.onNameChanged,
@@ -82,19 +84,26 @@ class _PlayerHeaderState extends State<PlayerHeader> {
   @override
   Widget build(BuildContext context) {
     final theme = PlayerColors.player(widget.playerIndex);
+    final selectedColor = Colors.green.shade700;
 
     return InkWell(
       onTap: widget.onWinnerTapped,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 5,
-          horizontal: 4,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
         decoration: BoxDecoration(
-          color: theme.background,
+          color: widget.isWinner
+              ? Colors.green.withValues(alpha: 0.14)
+              : theme.background,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.border),
+          border: Border.all(
+            color: widget.isWinner
+                ? selectedColor
+                : widget.awaitingWinnerSelection
+                ? Colors.green.shade300
+                : theme.border,
+            width: widget.isWinner || widget.awaitingWinnerSelection ? 1.8 : 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -126,9 +135,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
-                  key: ValueKey(
-                    'winner-selector-${widget.playerIndex}',
-                  ),
+                  key: ValueKey('winner-selector-${widget.playerIndex}'),
                   behavior: HitTestBehavior.opaque,
                   onTap: widget.onWinnerTapped,
                   child: SizedBox(
@@ -140,7 +147,9 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                         style: TextStyle(
                           fontSize: 18,
                           color: widget.isWinner
-                              ? Colors.green
+                              ? selectedColor
+                              : widget.awaitingWinnerSelection
+                              ? Colors.green.shade500
                               : theme.border,
                         ),
                       ),
@@ -149,9 +158,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                 ),
                 const SizedBox(width: 3),
                 GestureDetector(
-                  onTap: widget.canSelectEast
-                      ? widget.onEastTapped
-                      : null,
+                  onTap: widget.canSelectEast ? widget.onEastTapped : null,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 4,
@@ -159,9 +166,7 @@ class _PlayerHeaderState extends State<PlayerHeader> {
                     ),
                     decoration: widget.canSelectEast
                         ? BoxDecoration(
-                            color: theme.border.withValues(
-                              alpha: 0.35,
-                            ),
+                            color: theme.border.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(4),
                           )
                         : null,

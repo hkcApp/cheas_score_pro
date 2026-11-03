@@ -14,70 +14,33 @@ class ScoreScreen extends StatefulWidget {
 }
 
 class _ScoreScreenState extends State<ScoreScreen> {
-  final GlobalKey<ScoringTableState> _tableKey =
-      GlobalKey<ScoringTableState>();
+  final GlobalKey<ScoringTableState> _tableKey = GlobalKey<ScoringTableState>();
 
   int winnerIndex = -1;
   Map<String, List<int>> currentQuantities = {};
 
   Widget _buildScoreBoardTitle() => Transform.translate(
-        offset: const Offset(-44, 0),
-        child: SizedBox(
-          width: ScoringTableState.titleGridWidth,
-          child: const Center(
-            child: Text(
-              "🀄 Chea's Mahjong Score Board",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+    offset: const Offset(-44, 0),
+    child: SizedBox(
+      width: ScoringTableState.titleGridWidth,
+      child: const Center(
+        child: Text(
+          "🀄 Chea's Mahjong Score Board",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      );
+      ),
+    ),
+  );
 
   @override
   void initState() {
     super.initState();
-
-    final game = GameService.instance.currentGame;
-
-    if (game != null) {
-      // Restore the actual previous winner when resuming a saved game.
-      if (game.lastWinningPlayerId != null) {
-        final savedWinnerIndex = game.players.indexWhere(
-          (player) =>
-              player.id == game.lastWinningPlayerId &&
-              player.name.trim().isNotEmpty,
-        );
-
-        if (savedWinnerIndex >= 0) {
-          winnerIndex = savedWinnerIndex;
-        }
-      }
-
-      // If there is no saved winner, retain the existing
-      // behavior of starting with East.
-      if (winnerIndex == -1) {
-        final east = game.eastIndex;
-
-        if (east >= 0 &&
-            game.players[east].name.trim().isNotEmpty) {
-          winnerIndex = east;
-        } else {
-          winnerIndex = game.players.indexWhere(
-            (player) => player.name.trim().isNotEmpty,
-          );
-
-          if (winnerIndex == -1) {
-            winnerIndex = 0;
-          }
-        }
-      }
-    }
 
     ScoringValueService.instance.load().then((_) {
       if (mounted) {
@@ -98,11 +61,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     setState(() {
       winnerIndex = index;
+      currentQuantities = {};
     });
-
-    // Carry the previous winner's Base Point and Mahjong
-    // outcome selections to the newly selected winner.
-    _tableKey.currentState?.prepareNextRound();
+    _tableKey.currentState?.resetForNewRound();
   }
 
   Future<void> _resetDefaultPoints() async {
@@ -113,38 +74,32 @@ class _ScoreScreenState extends State<ScoreScreen> {
     setState(() {});
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Point values reset to defaults.'),
-      ),
+      const SnackBar(content: Text('Point values reset to defaults.')),
     );
   }
 
   int _selectedBasePoints() {
-    for (final rule in ScoringRules.baseRules) {
-      if ((currentQuantities[rule.name]?[winnerIndex] ?? 0) > 0) {
-        return ScoringValueService.instance.getPoints(rule.name);
-      }
-    }
-
-    return 0;
+    return ScoringRules.baseRules.fold(
+      0,
+      (total, rule) =>
+          total +
+          (currentQuantities[rule.name]?[winnerIndex] ?? 0) *
+              ScoringValueService.instance.getPoints(rule.name),
+    );
   }
 
   bool _hasOutcome(String ruleName) =>
       (currentQuantities[ruleName]?[winnerIndex] ?? 0) > 0;
 
   Map<String, int> _selectedOutcomes() => {
-        for (final rule in ScoringRules.bonusRules)
-          if (_hasOutcome(rule.name)) rule.name: 1,
-      };
+    for (final rule in ScoringRules.bonusRules)
+      if (_hasOutcome(rule.name)) rule.name: 1,
+  };
 
-  /// Captures the complete selection belonging to the current winner.
-  ///
-  /// This is saved with the game so Resume Game knows both:
-  /// - who the previous winner was
-  /// - which Base Point and Mahjong outcome selections were used
+  /// Stores the last round's selections as game metadata. New rounds always
+  /// start with no winner or scoring selections active.
   Map<String, int> _currentWinnerSelections() {
-    if (winnerIndex < 0 ||
-        winnerIndex >= currentQuantities.length) {
+    if (winnerIndex < 0 || winnerIndex >= currentQuantities.length) {
       return {};
     }
 
@@ -154,8 +109,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
       ...ScoringRules.baseRules,
       ...ScoringRules.bonusRules,
     ]) {
-      if ((currentQuantities[rule.name]?[winnerIndex] ?? 0) > 0) {
-        selections[rule.name] = 1;
+      final quantity = currentQuantities[rule.name]?[winnerIndex] ?? 0;
+      if (quantity > 0) {
+        selections[rule.name] = quantity;
       }
     }
 
@@ -170,9 +126,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
     final basePoints = _selectedBasePoints();
 
     final activePlayerCount = game.players
-        .where(
-          (player) => player.name.trim().isNotEmpty,
-        )
+        .where((player) => player.name.trim().isNotEmpty)
         .length;
 
     final loserCount = activePlayerCount - 1;
@@ -180,8 +134,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
     final multiplier = _hasOutcome('Discarded Chip Mahjong')
         ? loserCount + 1
         : _hasOutcome('Self-draw Chip Mahjong')
-            ? loserCount
-            : 1;
+        ? loserCount
+        : 1;
 
     final scores = <int, int>{
       for (var index = 0; index < game.players.length; index++)
@@ -201,12 +155,10 @@ class _ScoreScreenState extends State<ScoreScreen> {
     if (!success) return;
 
     // Persist the actual winner.
-    game.lastWinningPlayerId =
-        game.players[winnerIndex].id;
+    game.lastWinningPlayerId = game.players[winnerIndex].id;
 
     // Persist that winner's complete selection.
-    game.lastWinningSelections =
-        _currentWinnerSelections();
+    game.lastWinningSelections = _currentWinnerSelections();
 
     await GameService.instance.saveCurrentGame();
 
@@ -214,9 +166,11 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     FocusManager.instance.primaryFocus?.unfocus();
 
-    // Prepare the table for the next winner while retaining
-    // the previous winner's selections.
-    _tableKey.currentState?.prepareNextRound();
+    setState(() {
+      winnerIndex = -1;
+      currentQuantities = {};
+    });
+    _tableKey.currentState?.resetForNewRound();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -233,11 +187,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     if (!const ScoreService().undoLastHand(game: game)) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nothing to undo.'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nothing to undo.')));
       }
 
       return;
@@ -249,11 +201,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     setState(() {});
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Last round undone.'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Last round undone.')));
   }
 
   @override
@@ -267,9 +217,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
           titleSpacing: 0,
           title: _buildScoreBoardTitle(),
         ),
-        body: const Center(
-          child: Text('No active game.'),
-        ),
+        body: const Center(child: Text('No active game.')),
       );
     }
 
@@ -300,24 +248,16 @@ class _ScoreScreenState extends State<ScoreScreen> {
       ),
       body: Column(
         children: [
-          SizedBox(
-            height: topSpacerHeight,
-          ),
+          SizedBox(height: topSpacerHeight),
 
-          Divider(
-            height: dividerHeight,
-          ),
+          Divider(height: dividerHeight),
 
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ScoringTable(
                 key: _tableKey,
-                playerNames: game.players
-                    .map((player) => player.name)
-                    .toList(),
+                playerNames: game.players.map((player) => player.name).toList(),
                 runningTotals: game.players
                     .map((player) => player.score)
                     .toList(),
@@ -329,9 +269,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
                   // An inactive player must always be the
                   // highest-numbered inactive player.
                   if (trimmedName.isEmpty) {
-                    for (var i = index + 1;
-                        i < game.players.length;
-                        i++) {
+                    for (var i = index + 1; i < game.players.length; i++) {
                       if (game.players[i].name.trim().isNotEmpty) {
                         return;
                       }
@@ -341,29 +279,23 @@ class _ScoreScreenState extends State<ScoreScreen> {
                   setState(() {
                     game.players[index].name = trimmedName;
 
-                    // If the current winner becomes inactive,
-                    // select the first remaining active player.
-                    if (trimmedName.isEmpty &&
-                        winnerIndex == index) {
-                      winnerIndex = game.players.indexWhere(
-                        (player) =>
-                            player.name.trim().isNotEmpty,
-                      );
-
-                      if (winnerIndex == -1) {
-                        winnerIndex = 0;
-                      }
+                    // If the current winner becomes inactive, require a
+                    // winner to be selected again.
+                    if (trimmedName.isEmpty && winnerIndex == index) {
+                      winnerIndex = -1;
+                      currentQuantities = {};
                     }
                   });
+
+                  if (trimmedName.isEmpty && winnerIndex == -1) {
+                    _tableKey.currentState?.resetForNewRound();
+                  }
 
                   GameService.instance.saveCurrentGame();
                 },
                 onChanged: (values) {
                   currentQuantities = values.map(
-                    (key, value) => MapEntry(
-                      key,
-                      List<int>.from(value),
-                    ),
+                    (key, value) => MapEntry(key, List<int>.from(value)),
                   );
                 },
               ),
@@ -389,8 +321,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
               child: SizedBox(
                 width: 326,
                 child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
                       width: 80,
@@ -437,7 +368,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
                       width: 120,
                       height: buttonHeight,
                       child: ElevatedButton(
-                        onPressed: _saveRound,
+                        onPressed: winnerIndex < 0 ? null : _saveRound,
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero,
                         ),

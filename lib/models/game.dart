@@ -8,18 +8,17 @@ class Game {
     this.dealer = 0,
     Map<String, int>? lastWinningSelections,
     this.lastWinningPlayerId,
-  })  : players =
-            players ??
-            [
-              Player(id: 1, name: 'Player 1', wind: 'E'),
-              Player(id: 2, name: 'Player 2', wind: 'S'),
-              Player(id: 3, name: 'Player 3', wind: 'W'),
-              Player(id: 4, name: 'Player 4', wind: 'N'),
-            ],
-        lastWinningSelections =
-            lastWinningSelections != null
-                ? Map<String, int>.from(lastWinningSelections)
-                : {};
+  }) : players =
+           players ??
+           [
+             Player(id: 1, name: 'Player 1', wind: 'E'),
+             Player(id: 2, name: 'Player 2', wind: 'S'),
+             Player(id: 3, name: 'Player 3', wind: 'W'),
+             Player(id: 4, name: 'Player 4', wind: 'N'),
+           ],
+       lastWinningSelections = lastWinningSelections != null
+           ? Map<String, int>.from(lastWinningSelections)
+           : {};
 
   final List<Player> players;
 
@@ -29,18 +28,12 @@ class Game {
 
   int dealer;
 
-  /// The player ID of the most recent winner.
-  ///
-  /// This is persisted so Resume Game can restore the actual
-  /// winner instead of defaulting to East.
+  /// The player ID of the most recent completed hand's winner.
   int? lastWinningPlayerId;
 
-  /// The complete selection made by the most recent winner.
+  /// The selections made for the most recent completed hand.
   ///
-  /// This includes:
-  /// - the selected Base Point pattern
-  /// - Self-draw Chip Mahjong, if selected
-  /// - Discarded Chip Mahjong, if selected
+  /// These are retained as metadata and are not applied to a new round.
   Map<String, int> lastWinningSelections;
 
   void setPlayerNames(List<String> names) {
@@ -107,30 +100,21 @@ class Game {
   }
 
   factory Game.fromJson(Map<String, dynamic> json) {
-    final savedSelections =
-        json['lastWinningSelections'] is Map
-            ? Map<String, int>.from(
-                (json['lastWinningSelections'] as Map).map(
-                  (key, value) => MapEntry(
-                    key.toString(),
-                    (value as num).toInt(),
-                  ),
-                ),
-              )
-            : <String, int>{};
+    final savedSelections = json['lastWinningSelections'] is Map
+        ? Map<String, int>.from(
+            (json['lastWinningSelections'] as Map).map(
+              (key, value) => MapEntry(key.toString(), (value as num).toInt()),
+            ),
+          )
+        : <String, int>{};
 
-    final savedWinnerId =
-        json['lastWinningPlayerId'] == null
-            ? null
-            : (json['lastWinningPlayerId'] as num).toInt();
+    final savedWinnerId = json['lastWinningPlayerId'] == null
+        ? null
+        : (json['lastWinningPlayerId'] as num).toInt();
 
     final game = Game(
       players: (json['players'] as List)
-          .map(
-            (item) => Player.fromJson(
-              Map<String, dynamic>.from(item),
-            ),
-          )
+          .map((item) => Player.fromJson(Map<String, dynamic>.from(item)))
           .toList(),
       round: json['round'] as int,
       dealer: json['dealer'] as int,
@@ -140,9 +124,7 @@ class Game {
 
     game.transactions.addAll(
       (json['transactions'] as List).map(
-        (item) => ScoreTransaction.fromJson(
-          Map<String, dynamic>.from(item),
-        ),
+        (item) => ScoreTransaction.fromJson(Map<String, dynamic>.from(item)),
       ),
     );
 
@@ -166,18 +148,14 @@ class Game {
   /// Inactive players are skipped completely during rotation.
   void rotateWinds() {
     final activePlayers = players
-        .where(
-          (player) => player.name.trim().isNotEmpty,
-        )
+        .where((player) => player.name.trim().isNotEmpty)
         .toList();
 
     if (activePlayers.isEmpty) {
       return;
     }
 
-    final previousWinds = activePlayers
-        .map((player) => player.wind)
-        .toList();
+    final previousWinds = activePlayers.map((player) => player.wind).toList();
 
     for (var index = 0; index < activePlayers.length; index++) {
       activePlayers[(index + 1) % activePlayers.length].wind =
@@ -192,9 +170,7 @@ class Game {
   /// active players only.
   void updateWindsAfterRound(int winnerId) {
     final eastIndex = players.indexWhere(
-      (player) =>
-          player.wind == "E" &&
-          player.name.trim().isNotEmpty,
+      (player) => player.wind == "E" && player.name.trim().isNotEmpty,
     );
 
     if (eastIndex == -1) {

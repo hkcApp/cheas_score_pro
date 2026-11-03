@@ -18,12 +18,26 @@ class ScoringValueService {
     for (final rule in ScoringRules.baseRules) rule.name: rule.points,
   };
 
-  /// Defaults used before the base-rule values were revised. Values that still
-  /// match these are migrated to the new defaults; custom values are retained.
-  static const Map<String, int> _previousDefaultPoints = {
-    'Chow': 2,
-    'Pong': 4,
-    'Pong (Wind/Dragon)': 5,
+  /// Older rule names are mapped when their saved points were customized.
+  static const Map<String, String> _legacyRuleNames = {
+    'Pong': 'Pung',
+    'Pong (Wind/Dragon)': 'Honor Pung',
+    'Full Flush (1 Suit)': 'Full Flush',
+    'Nine Gates': 'Nine Gate',
+  };
+
+  /// Previously shipped defaults are reset to the current defaults, while
+  /// custom values continue to carry forward.
+  static const Map<String, Set<int>> _previousDefaultPoints = {
+    'Chow': {1, 2},
+    'Double Sequence': {2},
+    'Pure Triple Chow': {3},
+    'Pure Straight': {4},
+    'Full Flush (1 Suit)': {5},
+    'Seven Pairs': {6},
+    'Nine Gates': {10},
+    'Pong': {4},
+    'Pong (Wind/Dragon)': {5},
   };
 
   Future<void> load() async {
@@ -44,9 +58,11 @@ class ScoringValueService {
           ..addAll(_defaultPoints);
         for (final entry in data.entries) {
           final value = entry.value;
-          if (value is int && _defaultPoints.containsKey(entry.key)) {
-            if (_previousDefaultPoints[entry.key] != value) {
-              _values[entry.key] = value;
+          final ruleName = _legacyRuleNames[entry.key] ?? entry.key;
+          if (value is int && _defaultPoints.containsKey(ruleName)) {
+            if (!(_previousDefaultPoints[entry.key]?.contains(value) ??
+                false)) {
+              _values[ruleName] = value;
             }
           }
         }

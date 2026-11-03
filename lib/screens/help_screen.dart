@@ -48,10 +48,7 @@ class _HelpScreenState extends State<HelpScreen> {
     return null;
   }
 
-  List<TextSpan> _coloredText(
-    String text, {
-    double fontSize = 11.5,
-  }) {
+  List<TextSpan> _coloredText(String text, {double fontSize = 11.5}) {
     final spans = <TextSpan>[];
     final parts = text.split(' ');
 
@@ -84,88 +81,68 @@ class _HelpScreenState extends State<HelpScreen> {
     return spans;
   }
 
-Widget _quickReferenceLine(List<TextSpan> children) {
-  if (children.isEmpty) return const SizedBox.shrink();
+  Widget _quickReferenceLine(List<TextSpan> children) {
+    if (children.isEmpty) return const SizedBox.shrink();
 
-  final first = children.first;
-  final firstText = first.text ?? '';
+    final first = children.first;
+    final firstText = first.text ?? '';
 
-  if (!firstText.startsWith('• ')) {
+    if (!firstText.startsWith('• ')) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: RichText(
+          softWrap: true,
+          text: TextSpan(
+            style: const TextStyle(fontSize: 11.5, color: Colors.black87),
+            children: children,
+          ),
+        ),
+      );
+    }
+
+    final remainingFirst = TextSpan(
+      text: firstText.substring(2),
+      style: first.style,
+      recognizer: first.recognizer,
+      mouseCursor: first.mouseCursor,
+      onEnter: first.onEnter,
+      onExit: first.onExit,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: RichText(
-        softWrap: true,
-        text: TextSpan(
-          style: const TextStyle(
-            fontSize: 11.5,
-            color: Colors.black87,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            width: 12,
+            child: Text(
+              '•',
+              style: TextStyle(fontSize: 11.5, color: Colors.black87),
+            ),
           ),
-          children: children,
-        ),
+          Expanded(
+            child: RichText(
+              softWrap: true,
+              text: TextSpan(
+                style: const TextStyle(fontSize: 11.5, color: Colors.black87),
+                children: [remainingFirst, ...children.skip(1)],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
-
-  final remainingFirst = TextSpan(
-    text: firstText.substring(2),
-    style: first.style,
-    recognizer: first.recognizer,
-    mouseCursor: first.mouseCursor,
-    onEnter: first.onEnter,
-    onExit: first.onExit,
-  );
-
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 2),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          width: 12,
-          child: Text(
-            '•',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-        Expanded(
-          child: RichText(
-            softWrap: true,
-            text: TextSpan(
-              style: const TextStyle(
-                fontSize: 11.5,
-                color: Colors.black87,
-              ),
-              children: [
-                remainingFirst,
-                ...children.skip(1),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-
 
   TextSpan _normalSpan(String text) {
     return TextSpan(
       text: text,
-      style: const TextStyle(
-        fontSize: 11.5,
-        color: Colors.black87,
-      ),
+      style: const TextStyle(fontSize: 11.5, color: Colors.black87),
     );
   }
 
-  TextSpan _tileSpan(
-    String text, {
-    FontWeight fontWeight = FontWeight.normal,
-  }) {
+  TextSpan _tileSpan(String text, {FontWeight fontWeight = FontWeight.normal}) {
     return TextSpan(
       text: text,
       style: TextStyle(
@@ -182,10 +159,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
       margin: const EdgeInsets.fromLTRB(6, 4, 6, 6),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        border: Border.all(
-          color: Colors.grey.shade300,
-          width: 0.8,
-        ),
+        border: Border.all(color: Colors.grey.shade300, width: 0.8),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Material(
@@ -242,14 +216,23 @@ Widget _quickReferenceLine(List<TextSpan> children) {
               ),
             ]),
             _quickReferenceLine([
-              _normalSpan('• Pung — Three identical tiles, such as 7-7-7 or '),
-              _tileSpan('中 中 中'),
-              _normalSpan('.'),
+              _normalSpan(
+                '• Pung — Three identical numbered tiles, such as 7-7-7.',
+              ),
             ]),
             _quickReferenceLine([
               _normalSpan(
-                '• Kong — Four identical tiles. A Kong is one meld but '
-                'contains four physical tiles.',
+                '• Kong — Four identical numbered tiles; it counts as one meld.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Honor Pung — Three identical Wind or Dragon tiles.',
+              ),
+            ]),
+            _quickReferenceLine([
+              _normalSpan(
+                '• Honor Kong — Four identical Wind or Dragon tiles; it counts as one meld.',
               ),
             ]),
             _quickReferenceLine([
@@ -269,7 +252,6 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     );
   }
 
-
   Widget _sectionTitle(String text) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
@@ -284,15 +266,9 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     );
   }
 
-  Widget _headerCell(
-    String text, {
-    TextAlign alignment = TextAlign.left,
-  }) {
+  Widget _headerCell(String text, {TextAlign alignment = TextAlign.left}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 7,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
       child: Text(
         text,
         textAlign: alignment,
@@ -306,41 +282,17 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     );
   }
 
-  Widget _bodyCell(
-    Widget child, {
-    Alignment alignment = Alignment.topLeft,
-  }) {
+  Widget _bodyCell(Widget child, {Alignment alignment = Alignment.topLeft}) {
     return Container(
       alignment: alignment,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 7,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
       child: child,
     );
   }
 
-  Widget _patternCell(
-    int index,
-    ScoringRule rule,
-  ) {
-    const patternNames = [
-      'Chow',
-      'Double Sequence',
-      'Pure Triple Chow',
-      'Mixed One Suit',
-      '3 set of Pungs/Kongs',
-      '4 set of Pungs/Kongs',
-      'Pure Straight',
-      'Full Flush (1 Suit)',
-      '3 set of Honor Pungs/Kongs',
-      'Seven Pairs',
-      '4 set of Honor Pungs/Kongs',
-      'Nine Gates',
-    ];
-
+  Widget _patternCell(ScoringRule rule) {
     return Text(
-      patternNames[index],
+      rule.name,
       softWrap: true,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
@@ -370,15 +322,9 @@ Widget _quickReferenceLine(List<TextSpan> children) {
       text: TextSpan(
         children: [
           for (var i = 0; i < lines.length; i++) ...[
-            ..._coloredText(
-              lines[i],
-              fontSize: 13,
-            ),
+            ..._coloredText(lines[i], fontSize: 13),
             if (i < lines.length - 1)
-              const TextSpan(
-                text: '\n',
-                style: TextStyle(fontSize: 13),
-              ),
+              const TextSpan(text: '\n', style: TextStyle(fontSize: 13)),
           ],
         ],
       ),
@@ -389,69 +335,39 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     switch (index) {
       case 0:
         return 'Example: 2-3-4 筒\n'
-            'Complete hand: 2-3-4 筒 | 5-6-7 筒 | '
-            '3-4-5 索 | 7-7-7 萬 | 東-東\n'
-            'The hand contains four melds and a pair.';
+            'A Chow is three consecutive numbered tiles in the same suit.';
 
       case 1:
-        return 'Example: 2-3-4 筒 | 2-3-4 筒\n'
-            'Complete hand: 2-3-4 筒 | 2-3-4 筒 | '
-            '6-7-8 索 | 5-5-5 萬 | 中-中\n'
-            'The first two melds form the Double Sequence.';
+        return 'Example: 7-7-7 筒\n'
+            'A Pung is three identical numbered tiles.';
 
       case 2:
-        return 'Example: 1-2-3 筒 | 1-2-3 索 | 1-2-3 萬\n'
-            'Complete hand: 1-2-3 筒 | 1-2-3 索 | '
-            '1-2-3 萬 | 7-7-7 筒 | 9-9\n'
-            'The three identical-number Chows use three different suits.';
+        return 'Example: 9-9-9-9 索\n'
+            'A Kong is four identical numbered tiles and counts as one meld.';
 
       case 3:
-        return 'Example: one numbered suit + Honors\n'
-            'Complete hand: 1-2-3 筒 | 4-5-6 筒 | '
-            '7-8-9 筒 | 中-中-中 | 東-東\n'
-            'All numbered tiles are Dots; the remaining tiles are Honors.\n\n'
-            'Kong example: 1-2-3 筒 | 4-5-6 筒 | '
-            '7-7-7 筒 | 白-白-白-白 | 東-東\n'
-            'The White Dragon Kong counts as one meld.';
+        return 'Example: 東-東-東 (East Wind)\n'
+            'An Honor Pung is three identical Wind or Dragon tiles.';
 
       case 4:
-        return 'Example: 2-2-2 筒 | 5-5-5 索 | '
-            '9-9-9 萬 | 3-4-5 筒 | 東-東\n'
-            'The three qualifying groups are Pungs.\n\n'
-            'Kong example: 2-2-2 筒 | 5-5-5 索 | '
-            '中-中-中-中 | 3-4-5 萬 | 東-東\n'
-            'The three qualifying groups are two Pungs and one Kong.';
+        return 'Example: 中-中-中-中 (Red Dragon)\n'
+            'An Honor Kong is four identical Wind or Dragon tiles.';
 
       case 5:
-        return 'Example: 2-2-2 筒 | 5-5-5 索 | '
-            '7-7-7 萬 | 中-中-中 | 東-東\n'
-            'There are four Pungs plus the Pair.\n\n'
-            'Kong example: 2-2-2 筒 | 5-5-5 索 | '
-            '7-7-7 萬 | 中-中-中-中 | 東-東\n'
-            'The four melds are three Pungs and one Kong.';
+        return 'Example: 2-3-4 萬 | 2-3-4 萬\n'
+            'Both Chows use the same three numbers in the same suit.';
 
       case 6:
-        return 'Example: 1-2-3 筒 | 4-5-6 筒 | '
-            '7-8-9 筒 | 5-5-5 索 | 東-東\n'
-            'The first three melds create a complete 1 through 9 '
-            'sequence in one suit.';
+        return 'Example: 4-5-6 筒 | 4-5-6 索 | 4-5-6 萬\n'
+            'The three Chows use the same numbers in three different suits.';
 
       case 7:
-        return 'Example: 1-2-3 筒 | 4-5-6 筒 | '
-            '7-8-9 筒 | 5-5-5 筒 | 2-2 筒\n'
-            'Every tile is a Dot. There are no Bamboo, Characters, '
-            'or Honor tiles.\n\n'
-            'Kong example: 1-2-3 筒 | 4-5-6 筒 | '
-            '7-7-7 筒 | 9-9-9-9 筒 | 5-5 筒\n'
-            'All tiles remain within the Dot suit.';
+        return 'Example: 1-2-3 筒 | 4-5-6 筒 | 7-8-9 筒\n'
+            'The three Chows cover every number from 1 through 9.';
 
       case 8:
-        return 'Example: 東-東-東 | 中-中-中 | 白-白-白 | '
-            '2-3-4 筒 | 7-7 筒\n'
-            'The three qualifying groups are Honor Pungs.\n\n'
-            'Kong example: 東-東-東 | 中-中-中 | '
-            '白-白-白-白 | 2-3-4 筒 | 7-7 筒\n'
-            'The White Dragon group is a Kong.';
+        return 'Example: all tiles are 筒 (Dots)\n'
+            'No Bamboo, Characters, or Honor tiles are included.';
 
       case 9:
         return 'Complete hand — 7 pairs:\n'
@@ -462,15 +378,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
             'four-melds-plus-pair structure.';
 
       case 10:
-        return 'Example: 東-東-東 | 南-南-南 | 中-中-中 | '
-            '白-白-白 | 5-5 筒\n'
-            'The four Honor groups are Pungs, plus the Pair.\n\n'
-            'Kong example: 東-東-東 | 南-南-南 | 中-中-中 | '
-            '白-白-白-白 | 5-5 筒\n'
-            'Three Honor Pungs and one Honor Kong, plus the Pair.';
-
-      case 11:
-        return 'Nine Gates uses one numbered suit only.\n'
+        return 'Nine Gate uses one numbered suit only.\n'
             'Base structure: 1-1-1-2-3-4-5-6-7-8-9-9-9 筒\n'
             'Additional tile: 5 筒\n'
             'Complete hand: 1-1-1-2-3-4-5-5-6-7-8-9-9-9 筒\n'
@@ -482,15 +390,15 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     }
   }
 
-
   void _handleHorizontalDragUpdate(
     DragUpdateDetails details,
     double viewportWidth,
   ) {
-    final totalScrollableWidth =
-        _pointsWidth + _detailWidth + _exampleWidth;
-    final maxOffset =
-        (totalScrollableWidth - viewportWidth).clamp(0.0, double.infinity);
+    final totalScrollableWidth = _pointsWidth + _detailWidth + _exampleWidth;
+    final maxOffset = (totalScrollableWidth - viewportWidth).clamp(
+      0.0,
+      double.infinity,
+    );
 
     setState(() {
       _horizontalOffset = (_horizontalOffset - details.delta.dx).clamp(
@@ -501,8 +409,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
   }
 
   Widget _scrollableRuleHeader(double viewportWidth) {
-    final contentWidth =
-        _pointsWidth + _detailWidth + _exampleWidth;
+    final contentWidth = _pointsWidth + _detailWidth + _exampleWidth;
 
     return SizedBox(
       height: 43,
@@ -514,15 +421,9 @@ Widget _quickReferenceLine(List<TextSpan> children) {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 0.6,
-                ),
+                border: Border.all(color: Colors.grey.shade300, width: 0.6),
               ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 4,
-                vertical: 7,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
               alignment: Alignment.centerLeft,
               child: const Text(
                 'Pattern',
@@ -586,9 +487,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
                               width: 0.6,
                             ),
                           ),
-                          child: _headerCell(
-                            'Complete Hand Example',
-                          ),
+                          child: _headerCell('Complete Hand Example'),
                         ),
                       ),
                     ],
@@ -602,13 +501,8 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     );
   }
 
-  Widget _scrollableRuleRow(
-    int index,
-    ScoringRule rule,
-    double viewportWidth,
-  ) {
-    final contentWidth =
-        _pointsWidth + _detailWidth + _exampleWidth;
+  Widget _scrollableRuleRow(int index, ScoringRule rule, double viewportWidth) {
+    final contentWidth = _pointsWidth + _detailWidth + _exampleWidth;
 
     return IntrinsicHeight(
       child: Row(
@@ -619,26 +513,14 @@ Widget _quickReferenceLine(List<TextSpan> children) {
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  left: BorderSide(
-                    color: Colors.grey.shade300,
-                    width: 0.6,
-                  ),
-                  right: BorderSide(
-                    color: Colors.grey.shade300,
-                    width: 0.6,
-                  ),
-                  bottom: BorderSide(
-                    color: Colors.grey.shade300,
-                    width: 0.6,
-                  ),
+                  left: BorderSide(color: Colors.grey.shade300, width: 0.6),
+                  right: BorderSide(color: Colors.grey.shade300, width: 0.6),
+                  bottom: BorderSide(color: Colors.grey.shade300, width: 0.6),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 4,
-                vertical: 7,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
               alignment: Alignment.topLeft,
-              child: _patternCell(index, rule),
+              child: _patternCell(rule),
             ),
           ),
           SizedBox(
@@ -696,9 +578,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
                               ),
                             ),
                           ),
-                          child: _bodyCell(
-                            _detailCell(rule),
-                          ),
+                          child: _bodyCell(_detailCell(rule)),
                         ),
                       ),
                       SizedBox(
@@ -717,9 +597,7 @@ Widget _quickReferenceLine(List<TextSpan> children) {
                             ),
                           ),
                           child: _bodyCell(
-                            _exampleText(
-                              _completeExample(index),
-                            ),
+                            _exampleText(_completeExample(index)),
                           ),
                         ),
                       ),
@@ -734,41 +612,31 @@ Widget _quickReferenceLine(List<TextSpan> children) {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final rules = ScoringRules.baseRules;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Game Rules'),
-      ),
+      appBar: AppBar(title: const Text('Game Rules')),
       body: SafeArea(
         child: Column(
           children: [
             _quickReference(),
 
-            _sectionTitle(
-              '12 Special Winning Patterns',
-            ),
+            _sectionTitle('11 Base-Point Patterns'),
 
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final viewportWidth =
-                        (constraints.maxWidth - _patternWidth)
-                            .clamp(0.0, double.infinity);
+                    final viewportWidth = (constraints.maxWidth - _patternWidth)
+                        .clamp(0.0, double.infinity);
 
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onHorizontalDragUpdate: (details) =>
-                          _handleHorizontalDragUpdate(
-                        details,
-                        viewportWidth,
-                      ),
+                          _handleHorizontalDragUpdate(details, viewportWidth),
                       child: Column(
                         children: [
                           _scrollableRuleHeader(viewportWidth),
