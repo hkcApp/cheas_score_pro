@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.7.10
+
+- Renamed the home screen and score sheet titles.
+
 ## 2.7.9
 
 - Changed the default Double Sequence value to 11 points.

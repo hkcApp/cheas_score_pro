@@ -25,7 +25,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
       width: ScoringTableState.titleGridWidth,
       child: const Center(
         child: Text(
-          "🀄 Chea's Mahjong Score Board",
+          'Mahjong Score Sheet',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
