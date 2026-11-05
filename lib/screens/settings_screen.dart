@@ -121,13 +121,13 @@ class SettingsScreen extends StatelessWidget {
             _section(
               '10. Self-draw Chip Mahjong',
               'Select Self-draw Chip Mahjong when the winning tile was drawn by the winning player. '
-                  'Each other active player loses 5 points, which are added to the winner’s score.',
+                  'Each other active player loses the configured chip value, which is added to the winner’s score.',
             ),
 
             _section(
               '11. Discarded Chip Mahjong',
               'Select Discarded Chip Mahjong when another player discarded the tile that completed '
-                  'the winning hand. Each other active player loses 5 points multiplied by '
+                  'the winning hand. Each other active player loses the configured chip value multiplied by '
                   'the number of other active players. The winner receives that same bonus once.',
             ),
 

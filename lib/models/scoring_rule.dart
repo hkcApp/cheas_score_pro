@@ -74,7 +74,7 @@ class ScoringRules {
     ),
     ScoringRule(
       name: 'Double Sequence',
-      points: 14,
+      points: 11,
       type: ScoringType.base,
       maxQuantity: 2,
       countsTowardCombinationLimit: true,

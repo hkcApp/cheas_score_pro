@@ -12,7 +12,7 @@ void main() {
         'cheas_score_pro_scoring_values': jsonEncode({
           'Chow': 3,
           'Honor Kong': 6,
-          'Double Sequence': 8,
+          'Double Sequence': 14,
           'Pure Triple Chow': 18,
           'Pure Straight': 18,
           'Pong': 8,
@@ -22,6 +22,8 @@ void main() {
           'Seven Pairs': 20,
           'Nine Gates': 20,
           'Nine Gate': 20,
+          'Self-draw Chip Mahjong': 7,
+          'Discarded Chip Mahjong': 9,
         }),
       });
 
@@ -29,7 +31,7 @@ void main() {
 
       expect(ScoringValueService.instance.getPoints('Chow'), 3);
       expect(ScoringValueService.instance.getPoints('Honor Kong'), 5);
-      expect(ScoringValueService.instance.getPoints('Double Sequence'), 14);
+      expect(ScoringValueService.instance.getPoints('Double Sequence'), 11);
       expect(ScoringValueService.instance.getPoints('Pure Triple Chow'), 21);
       expect(ScoringValueService.instance.getPoints('Pure Straight'), 21);
       expect(ScoringValueService.instance.getPoints('Pung'), 8);
@@ -37,6 +39,32 @@ void main() {
       expect(ScoringValueService.instance.getPoints('Full Flush'), 30);
       expect(ScoringValueService.instance.getPoints('Seven Pairs'), 30);
       expect(ScoringValueService.instance.getPoints('Nine Gates'), 38);
+      expect(
+        ScoringValueService.instance.getPoints('Self-draw Chip Mahjong'),
+        7,
+      );
+      expect(
+        ScoringValueService.instance.getPoints('Discarded Chip Mahjong'),
+        9,
+      );
+
+      await ScoringValueService.instance.setPoints('Self-draw Chip Mahjong', 8);
+      final prefs = await SharedPreferences.getInstance();
+      final savedValues =
+          jsonDecode(prefs.getString('cheas_score_pro_scoring_values')!)
+              as Map<String, dynamic>;
+      expect(savedValues['Self-draw Chip Mahjong'], 8);
+
+      await ScoringValueService.instance.resetToDefaults();
+      expect(ScoringValueService.instance.getPoints('Double Sequence'), 11);
+      expect(
+        ScoringValueService.instance.getPoints('Self-draw Chip Mahjong'),
+        5,
+      );
+      expect(
+        ScoringValueService.instance.getPoints('Discarded Chip Mahjong'),
+        5,
+      );
     },
   );
 }

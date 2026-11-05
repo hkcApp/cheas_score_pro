@@ -41,7 +41,7 @@ void main() {
       expect(points, containsPair('Kong', 3));
       expect(points, containsPair('Honor Pung', 4));
       expect(points, containsPair('Honor Kong', 5));
-      expect(points, containsPair('Double Sequence', 14));
+      expect(points, containsPair('Double Sequence', 11));
       expect(points, containsPair('Pure Triple Chow', 21));
       expect(points, containsPair('Pure Straight', 21));
       expect(points, containsPair('Full Flush', 30));

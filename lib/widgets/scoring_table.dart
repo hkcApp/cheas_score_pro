@@ -86,11 +86,21 @@ class ScoringTableState extends State<ScoringTable> {
 
     _initialize();
 
-    for (final rule in ScoringRules.baseRules) {
+    for (final rule in _allRules) {
       _pointControllers[rule.name] = TextEditingController(
         text: ScoringValueService.instance.getPoints(rule.name).toString(),
       );
     }
+
+    ScoringValueService.instance.load().then((_) {
+      if (!mounted) return;
+      for (final rule in _allRules) {
+        _pointControllers[rule.name]!.text = ScoringValueService.instance
+            .getPoints(rule.name)
+            .toString();
+      }
+      setState(() {});
+    });
   }
 
   @override
@@ -177,7 +187,7 @@ class ScoringTableState extends State<ScoringTable> {
   Future<void> resetPointValues() async {
     await ScoringValueService.instance.resetToDefaults();
 
-    for (final rule in ScoringRules.baseRules) {
+    for (final rule in _allRules) {
       _pointControllers[rule.name]!.text = ScoringValueService.instance
           .getPoints(rule.name)
           .toString();
@@ -206,21 +216,24 @@ class ScoringTableState extends State<ScoringTable> {
       _quantities[ruleName]?[playerIndex] ?? 0;
 
   int _displayedBonusPoints(ScoringRule rule) {
-    if (rule.name != 'Discarded Chip Mahjong') return rule.points;
+    final points = ScoringValueService.instance.getPoints(rule.name);
+    if (rule.name != 'Discarded Chip Mahjong') return points;
 
     final activePlayerCount = widget.playerNames
         .where((name) => name.trim().isNotEmpty)
         .length;
-    return activePlayerCount > 1 ? rule.points * (activePlayerCount - 1) : 0;
+    return activePlayerCount > 1 ? points * (activePlayerCount - 1) : 0;
   }
 
   String _displayedBonusValue(ScoringRule rule) {
-    if (rule.name != 'Discarded Chip Mahjong') return '${rule.points}';
+    final points = ScoringValueService.instance.getPoints(rule.name);
+    if (rule.name != 'Discarded Chip Mahjong') return '$points';
 
     final activePlayerCount = widget.playerNames
         .where((name) => name.trim().isNotEmpty)
         .length;
-    return '${rule.points}x${activePlayerCount > 1 ? activePlayerCount - 1 : 0}';
+    return '$points'
+        'x${activePlayerCount > 1 ? activePlayerCount - 1 : 0}';
   }
 
   bool _hasStandalonePattern(int playerIndex) => ScoringRules.baseRules.any(
@@ -466,16 +479,70 @@ class ScoringTableState extends State<ScoringTable> {
       );
 
   String _descriptionForRule(ScoringRule rule) {
-    if (rule.name != 'Discarded Chip Mahjong') {
-      return rule.description ?? rule.name;
+    final points = ScoringValueService.instance.getPoints(rule.name);
+    if (rule.name == 'Self-draw Chip Mahjong') {
+      return 'Each other active player pays $points points.';
     }
+    if (rule.name == 'Discarded Chip Mahjong') {
+      final activePlayerCount = widget.playerNames
+          .where((name) => name.trim().isNotEmpty)
+          .length;
+      return 'Each opponent pays $points × '
+          '($activePlayerCount active players − 1) '
+          '= ${_displayedBonusPoints(rule)} points.';
+    }
+    return rule.description ?? rule.name;
+  }
 
-    final activePlayerCount = widget.playerNames
-        .where((name) => name.trim().isNotEmpty)
-        .length;
-    return 'Each opponent pays ${rule.points} × '
-        '($activePlayerCount active players − 1) '
-        '= ${_displayedBonusPoints(rule)} points.';
+  Future<void> _editBonusPoints(ScoringRule rule) async {
+    var pointsValue = ScoringValueService.instance
+        .getPoints(rule.name)
+        .toString();
+    var invalidValue = false;
+
+    final points = await showDialog<int>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Edit ${rule.name} points'),
+          content: TextFormField(
+            initialValue: pointsValue,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onChanged: (value) {
+              pointsValue = value;
+              if (invalidValue) setDialogState(() => invalidValue = false);
+            },
+            decoration: InputDecoration(
+              labelText: 'Points per player',
+              errorText: invalidValue ? 'Enter a valid point value.' : null,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final value = int.tryParse(pointsValue.trim());
+                if (value == null) {
+                  setDialogState(() => invalidValue = true);
+                  return;
+                }
+                Navigator.of(context).pop(value);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (points == null) return;
+    await ScoringValueService.instance.setPoints(rule.name, points);
+    if (mounted) setState(() {});
   }
 
   Widget _leftRow(ScoringRule rule) {
@@ -522,6 +589,7 @@ class ScoringTableState extends State<ScoringTable> {
             child: rule.type == ScoringType.base
                 ? Center(
                     child: TextField(
+                      key: ValueKey('base-points-${rule.name}'),
                       controller: _pointControllers[rule.name],
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -532,6 +600,7 @@ class ScoringTableState extends State<ScoringTable> {
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
                       ),
+                      onChanged: (_) => _savePointsValue(rule.name),
                       onSubmitted: (_) => _savePointsValue(rule.name),
                       onEditingComplete: () => _savePointsValue(rule.name),
                     ),
@@ -539,17 +608,24 @@ class ScoringTableState extends State<ScoringTable> {
                 : Center(
                     child: Material(
                       color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () =>
-                            _showDescription(label, _descriptionForRule(rule)),
-                        child: Text(
-                          _displayedBonusValue(rule),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: rule.name == 'Self-draw Chip Mahjong'
-                                ? Colors.green[800]
-                                : Colors.red[800],
+                      child: Tooltip(
+                        message: 'Tap to edit points',
+                        child: InkWell(
+                          onTap: () => _editBonusPoints(rule),
+                          onLongPress: () => _showDescription(
+                            label,
+                            _descriptionForRule(rule),
+                          ),
+                          child: Text(
+                            _displayedBonusValue(rule),
+                            key: ValueKey('bonus-points-${rule.name}'),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: rule.name == 'Self-draw Chip Mahjong'
+                                  ? Colors.green[800]
+                                  : Colors.red[800],
+                            ),
                           ),
                         ),
                       ),

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:chea_score_pro/screens/score_screen.dart';
 import 'package:chea_score_pro/services/game_service.dart';
+import 'package:chea_score_pro/services/scoring_value_service.dart';
 import 'package:chea_score_pro/widgets/quantity_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -111,36 +114,115 @@ void main() {
     expect(deltas.values.reduce((total, delta) => total + delta), 1);
   });
 
-  testWidgets(
-    'discarded-chip winner gets one 5x opponent-count bonus',
-    (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      await GameService.instance.startNewGame();
-      tester.view.physicalSize = const Size(900, 1000);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('discarded-chip winner gets one 5x opponent-count bonus', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await GameService.instance.startNewGame();
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('winner-selector-0')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(QuantityControl).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1').last);
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('winner-selector-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(QuantityControl).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1').last);
+    await tester.pumpAndSettle();
 
-      expect(find.text('5x3'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('outcome-discarded-0')));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('SAVE ROUND'));
-      await tester.tap(find.text('SAVE ROUND'));
-      await tester.pumpAndSettle();
+    expect(find.text('5x3'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('outcome-discarded-0')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('SAVE ROUND'));
+    await tester.tap(find.text('SAVE ROUND'));
+    await tester.pumpAndSettle();
 
-      final deltas =
-          GameService.instance.currentGame!.transactions.last.playerDeltas;
-      expect(deltas, {1: 16, 2: -15, 3: -15, 4: -15});
-      expect(deltas.values.reduce((total, delta) => total + delta), -29);
-    },
-  );
+    final deltas =
+        GameService.instance.currentGame!.transactions.last.playerDeltas;
+    expect(deltas, {1: 16, 2: -15, 3: -15, 4: -15});
+    expect(deltas.values.reduce((total, delta) => total + delta), -29);
+  });
+
+  testWidgets('edits and applies both Mahjong chip point values', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await GameService.instance.startNewGame();
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
+    await tester.pumpAndSettle();
+
+    Future<void> editBonus(String ruleName, String points) async {
+      final pointsCell = find.byKey(ValueKey('bonus-points-$ruleName'));
+      await tester.ensureVisible(pointsCell);
+      await tester.tap(pointsCell);
+      await tester.pumpAndSettle();
+      final dialogField = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(dialogField, points);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+    }
+
+    await editBonus('Self-draw Chip Mahjong', '8');
+    expect(
+      find.byKey(const ValueKey('bonus-points-Self-draw Chip Mahjong')),
+      findsOneWidget,
+    );
+    expect(find.text('8'), findsOneWidget);
+
+    await editBonus('Discarded Chip Mahjong', '7');
+    expect(find.text('7x3'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('winner-selector-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('outcome-discarded-0')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('SAVE ROUND'));
+    await tester.tap(find.text('SAVE ROUND'));
+    await tester.pumpAndSettle();
+
+    final deltas =
+        GameService.instance.currentGame!.transactions.last.playerDeltas;
+    expect(deltas, {1: 21, 2: -21, 3: -21, 4: -21});
+
+    await ScoringValueService.instance.resetToDefaults();
+  });
+
+  testWidgets('saves Base Points edits without submitting the field', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await GameService.instance.startNewGame();
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: ScoreScreen()));
+    await tester.pumpAndSettle();
+
+    final chowPointsField = find.byKey(const ValueKey('base-points-Chow'));
+    await tester.ensureVisible(chowPointsField);
+    await tester.enterText(chowPointsField, '9');
+    await tester.pumpAndSettle();
+
+    expect(ScoringValueService.instance.getPoints('Chow'), 9);
+    final prefs = await SharedPreferences.getInstance();
+    final savedValues =
+        jsonDecode(prefs.getString('cheas_score_pro_scoring_values')!)
+            as Map<String, dynamic>;
+    expect(savedValues['Chow'], 9);
+
+    await ScoringValueService.instance.resetToDefaults();
+  });
 }

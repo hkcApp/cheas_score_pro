@@ -15,7 +15,8 @@ class ScoringValueService {
   bool _loaded = false;
 
   static final Map<String, int> _defaultPoints = {
-    for (final rule in ScoringRules.baseRules) rule.name: rule.points,
+    for (final rule in [...ScoringRules.baseRules, ...ScoringRules.bonusRules])
+      rule.name: rule.points,
   };
 
   /// Older rule names are mapped when their saved points were customized.
@@ -31,7 +32,7 @@ class ScoringValueService {
   static const Map<String, Set<int>> _previousDefaultPoints = {
     'Chow': {1, 2},
     'Honor Kong': {6},
-    'Double Sequence': {2, 8},
+    'Double Sequence': {2, 8, 14},
     'Pure Triple Chow': {3, 18},
     'Pure Straight': {4, 18},
     'Full Flush (1 Suit)': {5},

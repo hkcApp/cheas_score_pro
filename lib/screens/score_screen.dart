@@ -130,9 +130,10 @@ class _ScoreScreenState extends State<ScoreScreen> {
         .length;
     final loserCount = activePlayerCount - 1;
     final bonusPointsPerLoser = _hasOutcome('Discarded Chip Mahjong')
-        ? ScoringRules.bonusRules.last.points * loserCount
+        ? ScoringValueService.instance.getPoints('Discarded Chip Mahjong') *
+              loserCount
         : _hasOutcome('Self-draw Chip Mahjong')
-        ? ScoringRules.bonusRules.first.points
+        ? ScoringValueService.instance.getPoints('Self-draw Chip Mahjong')
         : 0;
     final winnerBonusPoints = _hasOutcome('Discarded Chip Mahjong')
         ? bonusPointsPerLoser

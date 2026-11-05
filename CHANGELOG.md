@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.7.9
+
+- Changed the default Double Sequence value to 11 points.
+- Made base and Mahjong chip point values editable and persistent across
+  app restarts and resumed games.
+- Reset restores all scoring values to their original defaults.
+
 ## 2.7.8
 
 - Updated default base-point values and migrated previously shipped defaults
